@@ -1,0 +1,54 @@
+<article class="min-h-[13.9rem] rounded-lg border border-[#c6d2ca] bg-white p-6 shadow-[0_8px_22px_rgba(15,23,42,0.035)]">
+  <div class="mb-5 flex items-center justify-between">
+    @if (stat.solidIcon) {
+      <span class="grid size-10 place-items-center rounded-md bg-[#007653] text-[1.35rem] text-white">
+        <i class="uil {{ stat.icon }}" aria-hidden="true"></i>
+      </span>
+    } @else {
+      <span class="grid size-10 place-items-center rounded-md bg-[#dfe7ff] text-[1.35rem] text-[#007653]">
+        <i class="uil {{ stat.icon }}" aria-hidden="true"></i>
+      </span>
+    }
+
+    @if (stat.delta) {
+      <span class="rounded-sm bg-[#dff8e9] px-2 py-1 text-[0.72rem] font-bold text-[#005f43]">{{ stat.delta }}</span>
+    }
+
+    @if (stat.serviceTags?.length) {
+      <span class="relative inline-flex size-2 rounded-full bg-[#007653]" aria-label="Platform services are online">
+        <span class="absolute inline-flex size-full animate-ping rounded-full bg-[#007653] opacity-70"></span>
+      </span>
+    }
+  </div>
+
+  <p class="m-0 text-[0.83rem] font-normal text-[#48566d]">{{ stat.label }}</p>
+  <strong class="mt-2 block text-[1.55rem] font-bold leading-tight text-[#07182d]">{{ stat.value }}</strong>
+
+  @if (stat.split?.length) {
+    <div class="mt-5 flex gap-5">
+      @for (item of stat.split; track item.label) {
+        <span class="border-l border-[#c6d2ca] pl-5 first:border-l-0 first:pl-0">
+          <small class="block text-[0.83rem] font-normal text-[#48566d]">{{ item.label }}</small>
+          <b class="mt-1 block text-[1rem] text-[#005f43]" [style.color]="item.tone === 'muted' ? '#48566d' : null">{{ item.value }}</b>
+        </span>
+      }
+    </div>
+  }
+
+  @if (stat.note) {
+    <span class="mt-5 flex items-center gap-1.5 text-[0.83rem] font-normal text-[#48566d]">
+      @if (stat.label.includes('Subscription')) {
+        <i class="uil uil-chart-growth" aria-hidden="true"></i>
+      }
+      {{ stat.note }}
+    </span>
+  }
+
+  @if (stat.serviceTags?.length) {
+    <div class="mt-5 flex gap-2 overflow-hidden">
+      @for (tag of stat.serviceTags; track tag) {
+        <span class="whitespace-nowrap rounded-sm border border-[#c6d2ca] bg-[#f1f6fb] px-2 py-1 text-[0.72rem] font-bold text-[#1e2a3c]">{{ tag }}</span>
+      }
+    </div>
+  }
+</article>

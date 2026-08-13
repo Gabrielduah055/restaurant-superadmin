@@ -1,0 +1,210 @@
+<section class="px-8 py-10" (click)="openMenuId = ''">
+  <div class="mb-6 flex items-end justify-between gap-4">
+    <div>
+      <h2 class="m-0 text-[2rem] font-bold leading-tight text-[#07182d]">{{ pageCopy.listTitle }}</h2>
+      <p class="mt-2 text-[0.9rem] text-[#48566d]">{{ pageCopy.listSubtitle }}</p>
+    </div>
+
+    <div class="inline-flex rounded border border-[#c6d2ca] bg-[#eef4ff] p-1">
+      <a
+        class="inline-flex min-h-9 items-center gap-2 rounded bg-white px-4 text-[0.82rem] font-bold text-[#007653] no-underline"
+        routerLink="/dashboard/restaurants"
+      >
+        <i class="uil uil-list-ul" aria-hidden="true"></i>
+        {{ pageCopy.restaurantListLabel }}
+      </a>
+      <a
+        class="inline-flex min-h-9 items-center gap-2 rounded px-4 text-[0.82rem] font-medium text-[#40506a] no-underline"
+        routerLink="/dashboard/restaurants/new"
+      >
+        <i class="uil uil-store" aria-hidden="true"></i>
+        {{ pageCopy.addRestaurantLabel }}
+      </a>
+    </div>
+  </div>
+
+  <section class="mb-8 grid grid-cols-4 gap-6 max-[1200px]:grid-cols-2">
+    <label class="flex min-h-20 items-center gap-4 rounded-lg border border-[#c6d2ca] bg-white p-4">
+      <span class="grid size-12 place-items-center rounded-md bg-[#dfe7ff] text-[1.3rem] text-[#007653]">
+        <i class="uil uil-filter" aria-hidden="true"></i>
+      </span>
+      <span class="grid flex-1 gap-1">
+        <span class="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#46536a]">Plan Filter</span>
+        <select class="border-0 bg-transparent p-0 text-[0.84rem] font-bold text-[#07182d] outline-none" [(ngModel)]="selectedPlan">
+          <option value="all">All Plans</option>
+          @for (plan of planOptions; track plan.value) {
+            <option [value]="plan.value">{{ plan.label }}</option>
+          }
+        </select>
+      </span>
+    </label>
+
+    <label class="flex min-h-20 items-center gap-4 rounded-lg border border-[#c6d2ca] bg-white p-4">
+      <span class="grid size-12 place-items-center rounded-md bg-[#dfe7ff] text-[1.3rem] text-[#007653]">
+        <i class="uil uil-shield-check" aria-hidden="true"></i>
+      </span>
+      <span class="grid flex-1 gap-1">
+        <span class="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#46536a]">Status</span>
+        <select class="border-0 bg-transparent p-0 text-[0.84rem] font-bold text-[#07182d] outline-none" [(ngModel)]="selectedStatus">
+          <option value="all">Any Status</option>
+          @for (status of statusOptions; track status.value) {
+            <option [value]="status.value">{{ status.label }}</option>
+          }
+        </select>
+      </span>
+    </label>
+
+    <label class="flex min-h-20 items-center gap-4 rounded-lg border border-[#c6d2ca] bg-white p-4">
+      <span class="grid size-12 place-items-center rounded-md bg-[#dfe7ff] text-[1.3rem] text-[#007653]">
+        <i class="uil uil-wifi" aria-hidden="true"></i>
+      </span>
+      <span class="grid flex-1 gap-1">
+        <span class="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#46536a]">Session Status</span>
+        <select class="border-0 bg-transparent p-0 text-[0.84rem] font-bold text-[#07182d] outline-none" [(ngModel)]="selectedSession">
+          <option value="all">All Sessions</option>
+          <option value="connected">Connected</option>
+          <option value="disconnected">Disconnected</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </span>
+    </label>
+
+    <div class="flex min-h-20 items-center gap-4 rounded-lg border border-[#c6d2ca] bg-white p-4">
+      <span class="grid size-12 place-items-center rounded-md bg-[#007653] text-[1.3rem] text-white">
+        <i class="uil uil-download-alt" aria-hidden="true"></i>
+      </span>
+      <div>
+        <p class="m-0 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#46536a]">Actions</p>
+        <button class="mt-1 border-0 bg-transparent p-0 text-[0.84rem] font-bold text-[#005f43]" type="button">
+          {{ pageCopy.exportReportLabel }}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="mb-4 flex items-center justify-between gap-4">
+    <label class="flex min-h-10 w-[min(100%,28rem)] items-center gap-3 rounded-md border border-[#c6d2ca] bg-white px-3 text-[#4c5870]">
+      <i class="uil uil-search" aria-hidden="true"></i>
+      <input
+        class="min-w-0 flex-1 border-0 bg-transparent text-[0.86rem] outline-none"
+        type="search"
+        name="restaurantSearch"
+        [(ngModel)]="searchTerm"
+        placeholder="Search restaurants, owners, IDs..."
+      />
+    </label>
+    <button class="inline-flex min-h-10 items-center gap-2 rounded-md border border-[#c6d2ca] bg-white px-4 text-[0.82rem] font-bold text-[#005f43]" type="button" (click)="loadRestaurants()">
+      <i class="uil uil-refresh" aria-hidden="true"></i>
+      Refresh
+    </button>
+  </div>
+
+  @if (errorMessage) {
+    <div class="mb-4 rounded-md border border-[#ffc9c4] bg-[#fff1f0] px-4 py-3 text-[0.84rem] font-medium text-[#d71920]">
+      {{ errorMessage }}
+    </div>
+  }
+
+  <article class="overflow-visible rounded-lg border border-[#c6d2ca] bg-white shadow-[0_8px_22px_rgba(15,23,42,0.035)]">
+    <div class="grid grid-cols-[1.45fr_1.3fr_1fr_0.75fr_0.75fr_1fr_0.85fr_0.45fr] gap-4 border-b border-[#c6d2ca] bg-[#eef4ff] px-6 py-4 text-[0.78rem] font-bold uppercase tracking-[0.04em] text-[#46536a]">
+      <span>Restaurant Name</span>
+      <span>Owner / Contact</span>
+      <span>Wasender ID</span>
+      <span>Plan</span>
+      <span>Status</span>
+      <span>Session</span>
+      <span>Trial End</span>
+      <span class="text-right">Actions</span>
+    </div>
+
+    @if (isLoading) {
+      <div class="p-6 text-[0.86rem] font-medium text-[#48566d]">Loading restaurants...</div>
+    } @else if (!filteredRestaurants.length) {
+      <div class="p-6 text-[0.86rem] font-medium text-[#48566d]">No restaurants found.</div>
+    } @else {
+      @for (restaurant of filteredRestaurants; track restaurant._id) {
+        <div class="relative grid grid-cols-[1.45fr_1.3fr_1fr_0.75fr_0.75fr_1fr_0.85fr_0.45fr] items-center gap-4 border-b border-[#c6d2ca] px-6 py-4 last:border-b-0">
+          <div class="flex min-w-0 items-center gap-3">
+            <span class="grid size-10 shrink-0 place-items-center rounded bg-[#dfe7ff] text-[0.82rem] font-bold text-[#005f43]">
+              {{ getInitials(restaurant.name) }}
+            </span>
+            <span class="min-w-0">
+              <a class="block truncate text-[0.94rem] font-bold text-[#07182d] no-underline" [routerLink]="['/dashboard/restaurants', restaurant._id]">
+                {{ restaurant.name }}
+              </a>
+              <small class="block text-[0.72rem] text-[#48566d]">ID: {{ restaurant._id.slice(-6).toUpperCase() }}</small>
+            </span>
+          </div>
+
+          <div>
+            <strong class="block text-[0.86rem] font-semibold text-[#07182d]">{{ restaurant.ownerName || 'Unassigned' }}</strong>
+            <small class="mt-0.5 block text-[0.72rem] text-[#48566d]">
+              <i class="uil uil-phone" aria-hidden="true"></i>
+              {{ restaurant.ownerPhone }}
+            </small>
+          </div>
+
+          <code class="truncate text-[0.76rem] text-[#07182d]">{{ restaurant.wasenderSessionId }}</code>
+
+          <span class="w-fit rounded-sm border border-[#b9c9d4] bg-[#e9f6ff] px-2 py-1 text-[0.7rem] font-bold uppercase text-[#005f43]">
+            {{ getPlanLabel(restaurant.plan) }}
+          </span>
+
+          <span
+            class="w-fit rounded-full px-2 py-1 text-[0.7rem] font-bold uppercase"
+            [style.background-color]="restaurant.status === 'active' ? '#007653' : restaurant.status === 'paused' ? '#ffe3df' : '#dfe7ff'"
+            [style.color]="restaurant.status === 'active' ? '#ffffff' : restaurant.status === 'paused' ? '#d71920' : '#40506a'"
+          >
+            {{ getStatusLabel(restaurant.status) }}
+          </span>
+
+          <span
+            class="inline-flex items-center gap-1.5 text-[0.86rem] font-semibold"
+            [style.color]="getSessionState(restaurant) === 'connected' ? '#005f43' : getSessionState(restaurant) === 'disconnected' ? '#d71920' : '#9aa3b2'"
+          >
+            <i class="uil" [class.uil-wifi]="getSessionState(restaurant) === 'connected'" [class.uil-wifi-slash]="getSessionState(restaurant) === 'disconnected'" [class.uil-minus-circle]="getSessionState(restaurant) === 'inactive'" aria-hidden="true"></i>
+            {{ getSessionState(restaurant) | titlecase }}
+          </span>
+
+          <span class="text-[0.86rem] text-[#33405a]">{{ getTrialEnd(restaurant) }}</span>
+
+          <div class="relative text-right" (click)="$event.stopPropagation()">
+            <button class="grid size-8 place-items-center rounded border-0 bg-transparent text-[#344157]" type="button" (click)="toggleMenu(restaurant._id)" aria-label="Restaurant actions">
+              <i class="uil uil-ellipsis-v text-[1.25rem]" aria-hidden="true"></i>
+            </button>
+
+            @if (openMenuId === restaurant._id) {
+              <div class="absolute right-0 top-9 z-20 grid min-w-44 gap-1 rounded border border-[#c6d2ca] bg-white p-2 text-left shadow-[0_14px_34px_rgba(15,23,42,0.12)]">
+                <a class="flex items-center gap-2 rounded px-3 py-2 text-[0.82rem] text-[#40506a] no-underline hover:bg-[#eef4ff]" [routerLink]="['/dashboard/restaurants', restaurant._id]">
+                  <i class="uil uil-eye" aria-hidden="true"></i>
+                  View Details
+                </a>
+                <button class="flex items-center gap-2 rounded border-0 bg-transparent px-3 py-2 text-left text-[0.82rem] text-[#40506a] hover:bg-[#eef4ff]" type="button">
+                  <i class="uil uil-pen" aria-hidden="true"></i>
+                  Edit
+                </button>
+                <button class="flex items-center gap-2 rounded border-0 bg-transparent px-3 py-2 text-left text-[0.82rem] text-[#40506a] hover:bg-[#eef4ff]" type="button">
+                  <i class="uil uil-exchange" aria-hidden="true"></i>
+                  Change Plan
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    <footer class="flex min-h-14 items-center justify-between border-t border-[#c6d2ca] bg-[#eef4ff] px-6 text-[0.78rem] text-[#33405a]">
+      <span>Showing {{ filteredRestaurants.length }} of {{ restaurants.length }} entries</span>
+      <div class="flex items-center gap-2">
+        <button class="grid size-9 place-items-center rounded border border-[#c6d2ca] bg-white" type="button" aria-label="Previous page">
+          <i class="uil uil-angle-left" aria-hidden="true"></i>
+        </button>
+        <span class="grid size-9 place-items-center rounded bg-[#007653] text-white">1</span>
+        <button class="grid size-9 place-items-center rounded border border-[#c6d2ca] bg-white" type="button" aria-label="Next page">
+          <i class="uil uil-angle-right" aria-hidden="true"></i>
+        </button>
+      </div>
+    </footer>
+  </article>
+</section>

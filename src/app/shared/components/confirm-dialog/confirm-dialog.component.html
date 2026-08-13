@@ -1,0 +1,8 @@
+<section class="grid gap-4 rounded-lg border border-[#c6d2ca] bg-white p-5 shadow-[0_14px_34px_rgba(15,23,42,0.12)]" role="dialog" aria-modal="true">
+  <h2 class="m-0 text-[1.1rem] font-semibold text-[#07182d]">{{ title }}</h2>
+  <p class="m-0 text-[0.86rem] text-[#48566d]">{{ message }}</p>
+  <div class="flex justify-end gap-3">
+    <button class="min-h-9 rounded-md border border-[#c6d2ca] bg-white px-4 text-[0.82rem] font-medium text-[#07182d]" type="button" (click)="cancel.emit()">Cancel</button>
+    <button class="min-h-9 rounded-md border border-[#005f43] bg-[#007653] px-4 text-[0.82rem] font-medium text-white" type="button" (click)="confirm.emit()">Confirm</button>
+  </div>
+</section>

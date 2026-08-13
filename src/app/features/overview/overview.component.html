@@ -1,0 +1,142 @@
+<section class="px-5 py-5">
+  <div class="mb-8 flex items-end justify-between gap-4">
+    <app-page-header [title]="pageCopy.title" [subtitle]="pageCopy.subtitle" />
+
+    <div class="flex items-center gap-3">
+      <button
+        class="inline-flex min-h-9 items-center justify-center gap-2 rounded-md border border-[#c6d2ca] bg-white px-4 text-[0.82rem] font-medium text-[#07182d]"
+        type="button"
+      >
+        <i class="uil uil-file-download" aria-hidden="true"></i>
+        <span>{{ pageCopy.downloadReportLabel }}</span>
+      </button>
+      <button
+        class="inline-flex min-h-9 items-center justify-center gap-2 rounded-md border border-[#005f43] bg-[#007653] px-4 text-[0.82rem] font-medium text-white"
+        type="button"
+      >
+        <i class="uil uil-plus" aria-hidden="true"></i>
+        <span>{{ pageCopy.newRestaurantLabel }}</span>
+      </button>
+    </div>
+  </div>
+
+  <section class="mb-8 grid grid-cols-4 gap-6 max-[1100px]:grid-cols-2" aria-label="Platform metrics">
+    @for (stat of dashboardStats; track stat.label) {
+      <app-stat-card [stat]="stat" />
+    }
+  </section>
+
+  <section class="grid grid-cols-[minmax(0,2fr)_minmax(18rem,0.95fr)] gap-6 max-[1100px]:grid-cols-1">
+    <article class="overflow-hidden rounded-lg border border-[#c6d2ca] bg-white shadow-[0_8px_22px_rgba(15,23,42,0.035)]">
+      <header class="flex min-h-16 items-center justify-between gap-4 border-b border-[#c6d2ca] px-6">
+        <h3 class="m-0 text-[1.25rem] font-semibold text-[#07182d]">{{ pageCopy.attentionTitle }}</h3>
+        <span class="rounded-full bg-[#ffe3df] px-3 py-1.5 text-[0.72rem] font-semibold text-[#d71920]">
+          {{ pageCopy.criticalIssuesLabel }}
+        </span>
+      </header>
+
+      <div class="overflow-x-auto">
+        <div class="grid grid-cols-[minmax(12rem,1.25fr)_minmax(12rem,1.1fr)_minmax(6rem,0.55fr)_minmax(8rem,0.7fr)] items-center gap-4 bg-[#eef4ff] px-6 py-3 text-[0.7rem] font-semibold uppercase text-[#46536a]">
+          <span>Restaurant Name</span>
+          <span>Issue Description</span>
+          <span>Status</span>
+          <span>Action</span>
+        </div>
+
+        @for (issue of attentionIssues; track issue.restaurantId) {
+          <div class="grid min-w-[45rem] grid-cols-[minmax(12rem,1.25fr)_minmax(12rem,1.1fr)_minmax(6rem,0.55fr)_minmax(8rem,0.7fr)] items-center gap-4 border-t border-[#c6d2ca] px-6 py-4 first:border-t-0">
+            <div>
+              <strong class="block text-[0.88rem] font-semibold text-[#07182d]">{{ issue.restaurantName }}</strong>
+              <small class="mt-0.5 block text-[0.74rem] text-[#48566d]">ID: {{ issue.restaurantId }}</small>
+            </div>
+            <div
+              class="flex items-center gap-2 text-[0.92rem]"
+              [style.color]="issue.tone === 'danger' ? '#d71920' : '#5b6479'"
+            >
+              <i class="uil {{ issue.icon }} text-[1rem]" aria-hidden="true"></i>
+              <span>{{ issue.issue }}</span>
+            </div>
+            <app-status-badge [label]="issue.status" [tone]="issue.tone" />
+            <button class="border-0 bg-transparent text-[0.82rem] font-medium text-[#005f43]" type="button">
+              {{ issue.action }}
+            </button>
+          </div>
+        }
+      </div>
+
+      <button
+        class="flex min-h-13 w-full items-center justify-center gap-2 border-0 border-t border-[#c6d2ca] bg-[#fbfdff] text-[0.82rem] font-medium text-[#005f43]"
+        type="button"
+      >
+        <span>{{ pageCopy.viewAllIssuesLabel }}</span>
+        <i class="uil uil-arrow-right" aria-hidden="true"></i>
+      </button>
+    </article>
+
+    <aside class="flex flex-col gap-7 rounded-lg border border-[#c6d2ca] bg-white p-6 shadow-[0_8px_22px_rgba(15,23,42,0.035)]">
+      <section>
+        <h3 class="m-0 text-[1.25rem] font-semibold text-[#07182d]">{{ pageCopy.planTitle }}</h3>
+        <div class="mt-6 grid gap-4">
+          @for (plan of planInsights; track plan.label) {
+            <div>
+              <div class="mb-2 flex justify-between gap-4 text-[0.82rem]">
+                <span class="font-medium text-[#46536a]">{{ plan.label }}</span>
+                <strong class="font-bold text-[#07182d]">{{ plan.count }}</strong>
+              </div>
+              <span class="block h-1.5 overflow-hidden rounded-full bg-[#edf3ff]">
+                <span
+                  class="block h-full rounded-full"
+                  [style.background-color]="plan.tone === 'muted' ? '#596277' : '#007653'"
+                  [style.width.%]="plan.percentage"
+                ></span>
+              </span>
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="border-t border-[#c6d2ca] pt-6">
+        <h4 class="m-0 mb-4 text-[0.72rem] font-semibold uppercase text-[#46536a]">{{ pageCopy.eventsTitle }}</h4>
+        <div class="grid gap-4">
+          @for (event of platformEvents; track event.message) {
+            <article class="grid grid-cols-[auto_1fr] gap-3">
+              <span
+                class="mt-1.5 size-2 rounded-full"
+                [style.background-color]="event.tone === 'danger' ? '#d71920' : '#007653'"
+              ></span>
+              <div>
+                <p class="m-0 text-[0.9rem] leading-snug text-[#07182d]">{{ event.message }}</p>
+                <small class="text-[0.72rem] text-[#283553]">{{ event.time }}</small>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+    </aside>
+
+    <article class="col-span-full overflow-hidden rounded-lg border border-[#c6d2ca] bg-white shadow-[0_8px_22px_rgba(15,23,42,0.035)]">
+      <header class="flex min-h-16 items-center justify-between gap-4 border-b border-[#c6d2ca] px-6">
+        <h3 class="m-0 text-[1.25rem] font-semibold text-[#07182d]">{{ pageCopy.recentTitle }}</h3>
+        <button class="grid size-9 place-items-center rounded-md border-0 bg-transparent text-[#344157]" type="button" aria-label="More options">
+          <i class="uil uil-ellipsis-v text-[1.35rem]" aria-hidden="true"></i>
+        </button>
+      </header>
+
+      <div class="grid grid-cols-4 max-[1100px]:grid-cols-2">
+        @for (restaurant of recentRestaurants; track restaurant.name) {
+          <article class="min-h-40 border-r border-[#c6d2ca] p-6 last:border-r-0">
+            <span class="grid size-12 place-items-center overflow-hidden rounded-md bg-[#e6f7ed]">
+              <img [src]="restaurant.logoUrl" [alt]="restaurant.name + ' logo'" />
+            </span>
+            <h4 class="mb-1 mt-4 text-[1rem] font-semibold text-[#07182d]">{{ restaurant.name }}</h4>
+            <p class="m-0 text-[0.84rem] text-[#33405a]">{{ restaurant.onboardedAt }}</p>
+            <div class="mt-4 flex items-center gap-2">
+              <app-plan-badge [label]="restaurant.planLabel" [tone]="restaurant.tone" />
+              <i class="uil uil-check-circle text-[#005f43]" aria-hidden="true"></i>
+            </div>
+          </article>
+        }
+      </div>
+    </article>
+  </section>
+</section>

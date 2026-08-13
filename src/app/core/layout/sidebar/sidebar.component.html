@@ -1,0 +1,43 @@
+<aside class="fixed inset-y-0 left-0 z-30 flex w-[15.5rem] flex-col border-r border-[#c6d2ca] bg-[#f5f7ff]">
+  <div class="px-4 pb-3 pt-9">
+    <h1 class="m-0 text-[1.1rem] font-semibold leading-none text-[#07182d]">OrderBridge AI</h1>
+    <p class="mt-2 text-[0.6rem] font-bold uppercase tracking-[0.13em] text-[#27344c]">Super Admin</p>
+  </div>
+
+  <nav class="grid gap-0.5 px-2 py-2" aria-label="Super admin navigation">
+    @for (item of navItems; track item.route) {
+      <a
+        class="flex min-h-12 items-center gap-3 border-l-4 border-transparent px-4 text-[0.95rem] font-normal text-[#40506a] no-underline transition-colors duration-150 hover:bg-emerald-50 hover:text-[#005f43]"
+        [routerLink]="item.route"
+        routerLinkActive="border-[#007653] bg-[#dfe7ff] text-[#005f43] font-semibold"
+        [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+      >
+        <i class="uil {{ item.icon }} w-5 text-[1.28rem] text-current" aria-hidden="true"></i>
+        <span>{{ item.label }}</span>
+      </a>
+    }
+  </nav>
+
+  <button
+    class="mt-auto grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-0 border-t border-[#c6d2ca] bg-transparent p-4 text-left disabled:cursor-wait disabled:opacity-75"
+    type="button"
+    (click)="logout()"
+    [disabled]="isLoggingOut"
+  >
+    <span class="size-9 overflow-hidden rounded-full border border-[#c6d2ca] bg-white">
+      <img
+        class="size-full object-cover"
+        [src]="adminPhotoUrl"
+        alt="Admin profile"
+        (error)="profileImageFailed = true"
+      />
+    </span>
+    <span class="min-w-0">
+      <strong class="block truncate text-[0.7rem] font-bold text-[#07182d]">Admin User</strong>
+      <small class="block truncate text-[0.6rem] font-bold text-[#48566d]">
+        {{ isLoggingOut ? 'Signing out...' : adminEmail }}
+      </small>
+    </span>
+    <i class="uil uil-signout text-[#007653]" aria-hidden="true"></i>
+  </button>
+</aside>

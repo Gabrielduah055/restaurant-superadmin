@@ -1,0 +1,80 @@
+<main class="auth-screen relative isolate flex min-h-screen items-center justify-center overflow-hidden px-4 py-5 text-slate-950">
+  <section class="flex w-full max-w-md flex-col items-center gap-3">
+    <header class="text-center">
+      <div class="mb-2 flex items-center justify-center gap-2.5">
+        <div class="grid size-10 place-items-center rounded-xl bg-brand text-white shadow-brand">
+          <i class="uil uil-restaurant text-xl leading-none" aria-hidden="true"></i>
+        </div>
+        <h1 class="text-xl font-bold leading-7 text-brand-dark">OrderBridge AI</h1>
+      </div>
+      <p class="text-sm leading-5 text-auth-copy">Manage restaurant AI ordering from one place.</p>
+    </header>
+
+    <form class="w-full rounded-2xl border border-auth-border bg-white/95 px-6 py-5 shadow-auth-card sm:px-7" (ngSubmit)="login()">
+      <h2 class="mb-5 text-lg font-bold leading-6 text-slate-950">Welcome back</h2>
+
+      <label class="mb-4 block">
+        <span class="mb-2 block text-xs font-bold uppercase leading-4 tracking-widest text-slate-950">Email Address</span>
+        <span class="auth-field flex h-10 items-center gap-3 rounded-xl border border-auth-border bg-white px-4 transition">
+          <i class="uil uil-envelope-alt text-xl leading-none text-auth-muted" aria-hidden="true"></i>
+          <input class="h-full min-w-0 flex-1 border-0 bg-transparent text-sm leading-5 text-slate-500 outline-none" type="email" name="email" [(ngModel)]="email" autocomplete="email" placeholder="admin@orderbridge.ai" aria-label="Email address" required />
+        </span>
+      </label>
+
+      <label class="mb-4 block">
+        <span class="mb-2 flex items-center justify-between gap-4">
+          <span class="text-xs font-bold uppercase leading-4 tracking-widest text-slate-950">Password</span>
+          <button class="auth-link text-xs font-medium leading-4 text-brand transition" type="button" (click)="sendPasswordReset()" [disabled]="isResetting">
+            {{ isResetting ? 'Sending...' : 'Forgot?' }}
+          </button>
+        </span>
+        <span class="auth-field flex h-10 items-center gap-3 rounded-xl border border-auth-border bg-white px-4 transition">
+          <i class="uil uil-lock-alt text-xl leading-none text-auth-muted" aria-hidden="true"></i>
+          <input class="h-full min-w-0 flex-1 border-0 bg-transparent text-sm leading-5 text-slate-500 outline-none" [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="password" autocomplete="current-password" placeholder="Password" aria-label="Password" required />
+          <button class="auth-icon-button grid size-7 place-items-center rounded-full text-auth-muted transition" type="button" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'" (click)="showPassword = !showPassword">
+            <i class="uil text-xl leading-none" [class.uil-eye]="!showPassword" [class.uil-eye-slash]="showPassword" aria-hidden="true"></i>
+          </button>
+        </span>
+      </label>
+
+      <label class="mb-5 flex w-fit items-center gap-2.5 text-xs leading-5 text-slate-800">
+        <input class="auth-checkbox size-4 appearance-none rounded-md border border-auth-border bg-white transition" type="checkbox" name="rememberDevice" [(ngModel)]="rememberDevice" />
+        <span>Remember this device for 30 days</span>
+      </label>
+
+      @if (errorMessage) {
+        <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+          {{ errorMessage }}
+        </div>
+      }
+
+      @if (successMessage) {
+        <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
+          {{ successMessage }}
+        </div>
+      }
+
+      <button class="auth-button flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-brand-action bg-brand-action text-base font-extrabold leading-6 text-white shadow-auth-action transition" type="submit" [disabled]="isLoading">
+        <span>{{ isLoading ? 'Logging in...' : 'Login to Dashboard' }}</span>
+        <i class="uil uil-arrow-right text-xl leading-none" aria-hidden="true"></i>
+      </button>
+
+      <div class="my-5 flex items-center gap-4">
+        <span class="h-px flex-1 bg-auth-border"></span>
+        <span class="whitespace-nowrap text-xs font-extrabold uppercase leading-4 tracking-widest text-auth-muted">Or Secure Connect</span>
+        <span class="h-px flex-1 bg-auth-border"></span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <button class="auth-social flex h-10 items-center justify-center gap-2.5 rounded-lg border border-auth-border bg-white text-sm font-medium text-slate-950 transition" type="button" (click)="loginWithGoogle()" [disabled]="isLoading">
+          <span class="text-xl font-extrabold text-blue-500" aria-hidden="true">G</span>
+          <span>Google</span>
+        </button>
+        <button class="auth-social flex h-10 items-center justify-center gap-2.5 rounded-lg border border-auth-border bg-white text-sm font-medium text-slate-950 transition" type="button" disabled>
+          <i class="uil uil-apps text-xl leading-none" aria-hidden="true"></i>
+          <span>Apple</span>
+        </button>
+      </div>
+    </form>
+  </section>
+</main>

@@ -1,0 +1,50 @@
+<header
+  class="sticky top-0 z-20 flex min-h-16 items-center justify-between gap-4 border-b border-[#c6d2ca] bg-white/95 px-8"
+  (click)="profileMenuOpen = false"
+>
+  <app-search-input
+    [(value)]="globalSearch"
+    placeholder="Search restaurants, users, or logs..."
+  />
+
+  <div class="flex items-center gap-4" (click)="$event.stopPropagation()">
+    <button
+      class="relative grid size-9 place-items-center rounded-md border-0 bg-transparent text-[#344157]"
+      type="button"
+      aria-label="Notifications"
+    >
+      <i class="uil uil-bell text-[1.35rem]" aria-hidden="true"></i>
+      <span class="absolute right-2 top-2 size-1.5 rounded-full bg-[#d71920]"></span>
+    </button>
+
+    <div class="relative">
+      <button
+        class="flex items-center gap-2 border-0 bg-transparent text-[0.86rem] font-normal text-[#27344c]"
+        type="button"
+        (click)="profileMenuOpen = !profileMenuOpen"
+      >
+        <span>Profile</span>
+        <img
+          class="size-8 rounded-full border border-[#c6d2ca] object-cover"
+          [src]="adminPhotoUrl"
+          alt="Admin profile"
+          (error)="profileImageFailed = true"
+        />
+      </button>
+
+      @if (profileMenuOpen) {
+        <div class="absolute right-0 top-[calc(100%+0.7rem)] grid min-w-52 gap-3 rounded-md border border-[#c6d2ca] bg-white p-3 shadow-[0_14px_34px_rgba(15,23,42,0.12)]">
+          <p class="truncate text-[0.86rem] font-bold text-[#07182d]">{{ adminEmail }}</p>
+          <button
+            class="inline-flex min-h-9 items-center justify-center gap-2 rounded border border-[#c6d2ca] bg-[#f4f7fb] px-3 text-[0.8rem] font-bold text-[#005f43]"
+            type="button"
+            (click)="logout()"
+          >
+            <i class="uil uil-signout" aria-hidden="true"></i>
+            <span>{{ isLoggingOut ? 'Signing out...' : 'Logout' }}</span>
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</header>

@@ -1,0 +1,173 @@
+<section class="px-8 py-8">
+  @if (isLoading) {
+    <div class="rounded-lg border border-[#c6d2ca] bg-white p-6 text-[0.86rem] font-medium text-[#48566d]">
+      Loading restaurant details...
+    </div>
+  } @else if (errorMessage) {
+    <div class="rounded-md border border-[#ffc9c4] bg-[#fff1f0] px-4 py-3 text-[0.84rem] font-medium text-[#d71920]">
+      {{ errorMessage }}
+    </div>
+  } @else if (restaurant) {
+    <div class="mb-8 flex items-start justify-between gap-4">
+      <div>
+        <div class="mb-2 flex items-center gap-3">
+          <h2 class="m-0 text-[2rem] font-bold leading-tight text-[#07182d]">{{ restaurant.name }}</h2>
+          <span class="inline-flex items-center gap-1 rounded-full bg-[#007653] px-3 py-1 text-[0.7rem] font-bold text-white">
+            <i class="uil uil-award" aria-hidden="true"></i>
+            {{ getPlanLabel(restaurant.plan) }} Plan
+          </span>
+          <span class="inline-flex items-center gap-1 rounded-full bg-[#dfe7ff] px-3 py-1 text-[0.7rem] font-bold text-[#40506a]">
+            <i class="uil uil-check-circle" aria-hidden="true"></i>
+            {{ getStatusLabel(restaurant.status) }}
+          </span>
+        </div>
+        <p class="m-0 text-[0.86rem] text-[#48566d]">ID: {{ restaurant._id }} · Slug: {{ restaurant.slug }}</p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a class="inline-flex min-h-10 items-center gap-2 rounded border border-[#c6d2ca] bg-white px-4 text-[0.82rem] font-bold text-[#07182d] no-underline" routerLink="/dashboard/restaurants">
+          <i class="uil uil-arrow-left" aria-hidden="true"></i>
+          Back
+        </a>
+        <button class="inline-flex min-h-10 items-center gap-2 rounded border border-[#c6d2ca] bg-white px-4 text-[0.82rem] font-bold text-[#07182d]" type="button">
+          <i class="uil uil-exchange" aria-hidden="true"></i>
+          Change Plan
+        </button>
+      </div>
+    </div>
+
+    @if (getSessionState(restaurant) === 'disconnected') {
+      <div class="mb-8 flex items-center justify-between rounded-lg border border-[#f1d3d0] bg-[#fff7f7] px-6 py-4">
+        <div class="flex items-center gap-4">
+          <i class="uil uil-exclamation-triangle text-[1.45rem] text-[#07182d]" aria-hidden="true"></i>
+          <div>
+            <strong class="block text-[0.9rem] text-[#b00020]">WhatsApp Session Disconnected</strong>
+            <span class="text-[0.86rem] text-[#b00020]">Auto-responses may be offline until this session is restored.</span>
+          </div>
+        </div>
+        <button class="inline-flex min-h-10 items-center gap-2 rounded border-0 bg-[#007653] px-4 text-[0.82rem] font-bold text-white" type="button">
+          Reconnect Now
+        </button>
+      </div>
+    }
+
+    <nav class="mb-8 flex items-center gap-8 border-b border-[#c6d2ca]">
+      @for (tab of tabs; track tab) {
+        <button
+          class="border-0 border-b-2 bg-transparent px-0 py-4 text-[0.78rem] font-medium"
+          [style.border-color]="activeTab === tab ? '#007653' : 'transparent'"
+          [style.color]="activeTab === tab ? '#07182d' : '#33405a'"
+          type="button"
+          (click)="activeTab = tab"
+        >
+          {{ tab }}
+        </button>
+      }
+    </nav>
+
+    @if (activeTab === 'Overview') {
+      <section class="grid grid-cols-[minmax(0,2fr)_minmax(18rem,0.95fr)] gap-6">
+        <article class="rounded-lg border border-[#c6d2ca] bg-white p-6">
+          <header class="mb-6 flex items-center justify-between">
+            <h3 class="m-0 text-[1rem] font-semibold text-[#07182d]">Business & Owner Profile</h3>
+            <button class="inline-flex items-center gap-2 border-0 bg-transparent text-[0.82rem] font-bold text-[#07182d]" type="button">
+              <i class="uil uil-pen" aria-hidden="true"></i>
+              Edit Details
+            </button>
+          </header>
+
+          <div class="grid grid-cols-2 gap-x-12 gap-y-7">
+            <div>
+              <p class="m-0 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#46536a]">Legal Entity Name</p>
+              <strong class="mt-2 block text-[0.95rem] font-semibold text-[#07182d]">{{ restaurant.name }}</strong>
+            </div>
+            <div>
+              <p class="m-0 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#46536a]">Owner / Contact Person</p>
+              <strong class="mt-2 block text-[0.95rem] font-semibold text-[#07182d]">{{ restaurant.ownerName || 'Unassigned' }}</strong>
+            </div>
+            <div>
+              <p class="m-0 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#46536a]">Primary Phone</p>
+              <strong class="mt-2 block text-[0.95rem] font-semibold text-[#07182d]">{{ restaurant.ownerPhone }}</strong>
+            </div>
+            <div>
+              <p class="m-0 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#46536a]">WhatsApp Number</p>
+              <strong class="mt-2 block text-[0.95rem] font-semibold text-[#07182d]">{{ restaurant.whatsappNumber }}</strong>
+            </div>
+            <div class="col-span-2">
+              <p class="m-0 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#46536a]">Address</p>
+              <strong class="mt-2 block text-[0.95rem] font-semibold text-[#07182d]">{{ restaurant.pickupAddress || 'No pickup address saved' }}</strong>
+            </div>
+          </div>
+        </article>
+
+        <aside class="rounded-lg border border-[#c6d2ca] bg-white p-6">
+          <h3 class="m-0 mb-5 text-[1rem] font-semibold text-[#07182d]">Quick Stats</h3>
+          <div class="grid gap-4">
+            <div class="flex justify-between rounded bg-[#eef4ff] px-4 py-3 text-[0.86rem]">
+              <span class="text-[#46536a]">Joined Date</span>
+              <strong>{{ getJoinedDate(restaurant) }}</strong>
+            </div>
+            <div class="flex justify-between rounded bg-[#eef4ff] px-4 py-3 text-[0.86rem]">
+              <span class="text-[#46536a]">Managers</span>
+              <strong>{{ getManagerCount(restaurant) }}</strong>
+            </div>
+            <div class="flex justify-between rounded bg-[#eef4ff] px-4 py-3 text-[0.86rem]">
+              <span class="text-[#46536a]">API Version</span>
+              <strong>v4.2-stable</strong>
+            </div>
+          </div>
+        </aside>
+
+        <article class="rounded-lg border border-[#c6d2ca] bg-white p-6">
+          <h3 class="mb-7 flex items-center gap-3 text-[1rem] font-semibold text-[#07182d]">
+            <span class="grid size-10 place-items-center rounded bg-[#eef4ff] text-[#007653]">
+              <i class="uil uil-robot" aria-hidden="true"></i>
+            </span>
+            AI Assistant Configuration
+          </h3>
+          <div class="grid gap-4 text-[0.86rem]">
+            <div class="flex justify-between">
+              <span>Auto-Response Status</span>
+              <strong>{{ restaurant.followUpEnabled ? 'Enabled' : 'Disabled' }}</strong>
+            </div>
+            <div class="flex justify-between">
+              <span>Assistant Tone</span>
+              <strong>{{ restaurant.assistantTone | titlecase }}</strong>
+            </div>
+            <div class="flex justify-between">
+              <span>Follow-up Delay</span>
+              <strong>{{ restaurant.followUpDelayMinutes }} min</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="rounded-lg border border-[#c6d2ca] bg-white p-6">
+          <h3 class="mb-7 flex items-center gap-3 text-[1rem] font-semibold text-[#07182d]">
+            <span class="grid size-10 place-items-center rounded bg-[#eef4ff] text-[#007653]">
+              <i class="uil uil-truck" aria-hidden="true"></i>
+            </span>
+            Delivery Logic
+          </h3>
+          <div class="grid gap-4 text-[0.86rem]">
+            <div class="flex justify-between">
+              <span>Delivery Enabled</span>
+              <strong>{{ restaurant.deliveryEnabled ? 'Yes' : 'No' }}</strong>
+            </div>
+            <div>
+              <span class="block text-[#46536a]">Delivery Areas</span>
+              <strong class="mt-2 block">{{ restaurant.deliveryAreas.length ? restaurant.deliveryAreas.join(', ') : 'No delivery areas saved' }}</strong>
+            </div>
+            <div>
+              <span class="block text-[#46536a]">Fee Note</span>
+              <strong class="mt-2 block">{{ restaurant.deliveryFeeNote || 'No fee note saved' }}</strong>
+            </div>
+          </div>
+        </article>
+      </section>
+    } @else {
+      <section class="rounded-lg border border-[#c6d2ca] bg-white p-6 text-[0.86rem] font-medium text-[#48566d]">
+        {{ activeTab }} tools will be connected here.
+      </section>
+    }
+  }
+</section>

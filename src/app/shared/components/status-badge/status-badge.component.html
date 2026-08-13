@@ -1,0 +1,14 @@
+@switch (tone) {
+  @case ('danger') {
+    <span class="w-fit rounded-sm bg-[#ffe3df] px-2 py-1 text-[0.72rem] font-medium text-[#d71920]">{{ label }}</span>
+  }
+  @case ('warning') {
+    <span class="w-fit rounded-sm bg-[#dfe7ff] px-2 py-1 text-[0.72rem] font-medium text-[#5b6479]">{{ label }}</span>
+  }
+  @case ('secondary') {
+    <span class="w-fit rounded-sm bg-[#dfe7ff] px-2 py-1 text-[0.72rem] font-medium text-[#5b6479]">{{ label }}</span>
+  }
+  @default {
+    <span class="w-fit rounded-sm bg-[#e8f0ff] px-2 py-1 text-[0.72rem] font-medium text-[#5b6479]">{{ label }}</span>
+  }
+}

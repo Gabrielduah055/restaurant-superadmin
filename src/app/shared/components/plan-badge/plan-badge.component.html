@@ -1,0 +1,11 @@
+@switch (tone) {
+  @case ('primary') {
+    <span class="w-fit rounded-sm bg-[#dff8e9] px-2 py-1 text-[0.72rem] font-bold text-[#005f43]">{{ label }}</span>
+  }
+  @case ('secondary') {
+    <span class="w-fit rounded-sm bg-[#dfe7ff] px-2 py-1 text-[0.72rem] font-bold text-[#40506a]">{{ label }}</span>
+  }
+  @default {
+    <span class="w-fit rounded-sm bg-[#e8eef8] px-2 py-1 text-[0.72rem] font-bold text-[#40506a]">{{ label }}</span>
+  }
+}

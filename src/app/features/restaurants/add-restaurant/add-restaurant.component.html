@@ -1,0 +1,266 @@
+<section class="pb-28">
+  <div class="px-8 py-8">
+    <div class="mb-4 flex items-center gap-2 text-[0.78rem] text-[#33405a]">
+      <a class="text-[#33405a] no-underline" routerLink="/dashboard/restaurants">Restaurants</a>
+      <span>/</span>
+      <strong class="text-[#005f43]">{{ pageCopy.addRestaurantLabel }}</strong>
+    </div>
+
+    <h2 class="m-0 text-[2rem] font-bold leading-tight text-[#07182d]">{{ pageCopy.addTitle }}</h2>
+    <p class="mt-2 text-[0.9rem] text-[#48566d]">{{ pageCopy.addSubtitle }}</p>
+
+    @if (errorMessage) {
+      <div class="mt-6 rounded-md border border-[#ffc9c4] bg-[#fff1f0] px-4 py-3 text-[0.84rem] font-medium text-[#d71920]">
+        {{ errorMessage }}
+      </div>
+    }
+
+    <form id="restaurantForm" class="mt-8 grid gap-8" [formGroup]="restaurantForm" (ngSubmit)="saveRestaurant()">
+      <section class="rounded-lg border border-[#dce4ee] bg-white p-8 shadow-[0_8px_22px_rgba(15,23,42,0.025)]">
+        <h3 class="mb-7 flex items-center gap-2 text-[1rem] font-semibold text-[#007653]">
+          <i class="uil uil-info-circle text-[1.25rem]" aria-hidden="true"></i>
+          Business Info
+        </h3>
+
+        <div class="grid grid-cols-2 gap-6 max-[900px]:grid-cols-1">
+          <label class="grid gap-2">
+            <span class="text-[0.82rem] font-medium text-[#6a7488]">Restaurant Name</span>
+            <input class="min-h-11 border border-[#9ca8bb] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" formControlName="name" placeholder="e.g. The Golden Grill" />
+          </label>
+
+          <label class="grid gap-2">
+            <span class="text-[0.82rem] font-medium text-[#6a7488]">Primary Cuisine</span>
+            <select class="min-h-11 border border-[#c6d2ca] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" formControlName="primaryCuisine">
+              <option>Italian</option>
+              <option>Ghanaian</option>
+              <option>Continental</option>
+              <option>Chinese</option>
+              <option>Fast Food</option>
+              <option>Bakery</option>
+            </select>
+          </label>
+
+          <label class="col-span-2 grid gap-2 max-[900px]:col-span-1">
+            <span class="text-[0.82rem] font-medium text-[#6a7488]">Physical Address</span>
+            <input class="min-h-11 border border-[#9ca8bb] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" formControlName="pickupAddress" placeholder="123 Culinary Ave, Suite 100, Food District" />
+          </label>
+
+          <label class="grid gap-2">
+            <span class="text-[0.82rem] font-medium text-[#6a7488]">Contact Email</span>
+            <input class="min-h-11 border border-[#9ca8bb] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" type="email" formControlName="contactEmail" placeholder="manager@restaurant.com" />
+          </label>
+
+          <label class="grid gap-2">
+            <span class="text-[0.82rem] font-medium text-[#6a7488]">Phone Number</span>
+            <input class="min-h-11 border border-[#9ca8bb] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" formControlName="ownerPhone" placeholder="+1 (555) 000-0000" />
+          </label>
+        </div>
+      </section>
+
+      <section class="rounded-lg border border-[#dce4ee] bg-white p-8 shadow-[0_8px_22px_rgba(15,23,42,0.025)]">
+        <h3 class="mb-7 flex items-center gap-2 text-[1rem] font-semibold text-[#007653]">
+          <i class="uil uil-key-skeleton-alt text-[1.25rem]" aria-hidden="true"></i>
+          Wasender Setup
+        </h3>
+
+        <div class="mb-6 flex items-center gap-4 rounded border border-[#b9cfd8] bg-[#eef4ff] px-4 py-4 text-[#07182d]">
+          <i class="uil uil-apps text-[1.5rem] text-[#007653]" aria-hidden="true"></i>
+          <div>
+            <strong class="block text-[0.86rem]">API Integration Required</strong>
+            <span class="text-[0.78rem] text-[#6a7488]">Connect your WhatsApp instance via Wasender to enable AI order processing and automated customer engagement.</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 max-[900px]:grid-cols-1">
+          <label class="grid gap-2">
+            <span class="text-[0.82rem] font-medium text-[#6a7488]">Instance ID</span>
+            <input class="min-h-11 border border-[#9ca8bb] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" formControlName="wasenderSessionId" placeholder="W-789-ABC" />
+          </label>
+
+          <label class="grid gap-2">
+            <span class="text-[0.82rem] font-medium text-[#6a7488]">API Token</span>
+            <input class="min-h-11 border border-[#9ca8bb] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" type="password" formControlName="wasenderApiToken" placeholder="Enter API token" />
+          </label>
+
+          <label class="grid gap-2">
+            <span class="text-[0.82rem] font-medium text-[#6a7488]">WhatsApp Number</span>
+            <input class="min-h-11 border border-[#9ca8bb] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" formControlName="whatsappNumber" placeholder="+1 (555) 000-0000" />
+          </label>
+
+          <label class="grid gap-2">
+            <span class="text-[0.82rem] font-medium text-[#6a7488]">Owner / Contact Person</span>
+            <input class="min-h-11 border border-[#9ca8bb] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" formControlName="ownerName" placeholder="Manager Name" />
+          </label>
+        </div>
+      </section>
+
+      <section class="rounded-lg border border-[#dce4ee] bg-white p-8 shadow-[0_8px_22px_rgba(15,23,42,0.025)]">
+        <h3 class="mb-7 flex items-center gap-2 text-[1rem] font-semibold text-[#007653]">
+          <i class="uil uil-bill text-[1.25rem]" aria-hidden="true"></i>
+          Plan & Subscription
+        </h3>
+
+        <div class="grid grid-cols-3 gap-4 max-[1100px]:grid-cols-1">
+          @for (plan of planCards; track plan.value) {
+            <label
+              class="min-h-48 cursor-pointer rounded-md border bg-white p-6 transition"
+              [style.border-color]="restaurantForm.controls.plan.value === plan.value ? '#007653' : '#c6d2ca'"
+              [style.background-color]="restaurantForm.controls.plan.value === plan.value ? '#f0fff7' : '#ffffff'"
+            >
+              <input class="sr-only" type="radio" formControlName="plan" [value]="plan.value" />
+              <span class="mb-5 flex items-center justify-between gap-4">
+                <span class="rounded-sm px-2 py-1 text-[0.68rem] font-bold uppercase" [style.background-color]="restaurantForm.controls.plan.value === plan.value ? '#007653' : '#dfe7ff'" [style.color]="restaurantForm.controls.plan.value === plan.value ? '#ffffff' : '#005f43'">
+                  {{ plan.label }}
+                </span>
+                <strong class="text-[1rem] text-[#07182d]">{{ plan.price }}</strong>
+              </span>
+              <span class="grid gap-4">
+                @for (feature of plan.features; track feature) {
+                  <span class="flex items-center gap-2 text-[0.82rem] font-medium text-[#6a7488]">
+                    <i class="uil uil-check-circle text-[#007653]" aria-hidden="true"></i>
+                    {{ feature }}
+                  </span>
+                }
+              </span>
+            </label>
+          }
+        </div>
+
+        <div class="mt-7 grid grid-cols-2 gap-6 max-[900px]:grid-cols-1">
+          <label class="grid gap-2">
+            <span class="text-[0.82rem] font-medium text-[#6a7488]">Subscription Status</span>
+            <select class="min-h-11 border border-[#c6d2ca] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" formControlName="status">
+              @for (status of statusOptions; track status.value) {
+                <option [value]="status.value">{{ status.label }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="grid gap-2">
+            <span class="text-[0.82rem] font-medium text-[#6a7488]">Renewal Date</span>
+            <input class="min-h-11 border border-[#9ca8bb] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" type="date" formControlName="subscriptionRenewalDate" />
+          </label>
+        </div>
+      </section>
+
+      <section class="rounded-lg border border-[#dce4ee] bg-white p-8 shadow-[0_8px_22px_rgba(15,23,42,0.025)]">
+        <h3 class="mb-7 flex items-center gap-2 text-[1rem] font-semibold text-[#007653]">
+          <i class="uil uil-truck text-[1.25rem]" aria-hidden="true"></i>
+          Delivery Settings
+        </h3>
+
+        <div class="grid grid-cols-2 gap-6 max-[900px]:grid-cols-1">
+          <label class="grid gap-2">
+            <span class="text-[0.82rem] font-medium text-[#6a7488]">Delivery Radius (km)</span>
+            <input class="min-h-11 border border-[#9ca8bb] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" type="number" min="0" formControlName="deliveryRadiusKm" />
+          </label>
+
+          <label class="grid gap-2">
+            <span class="text-[0.82rem] font-medium text-[#6a7488]">Minimum Order Value</span>
+            <input class="min-h-11 border border-[#9ca8bb] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" type="number" min="0" step="0.01" formControlName="minimumOrderValue" />
+          </label>
+
+          <label class="grid gap-2">
+            <span class="text-[0.82rem] font-medium text-[#6a7488]">Delivery Areas</span>
+            <input class="min-h-11 border border-[#9ca8bb] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" formControlName="deliveryAreas" placeholder="East Legon, Osu, Airport" />
+          </label>
+
+          <label class="grid gap-2">
+            <span class="text-[0.82rem] font-medium text-[#6a7488]">Delivery Fee Note</span>
+            <input class="min-h-11 border border-[#9ca8bb] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" formControlName="deliveryFeeNote" placeholder="Free delivery above $50" />
+          </label>
+
+          <label class="flex min-h-11 items-center gap-3 text-[0.86rem] font-medium text-[#07182d]">
+            <input class="size-4 accent-[#007653]" type="checkbox" formControlName="allowTakeaway" />
+            Allow Takeaway / Pickup
+          </label>
+
+          <label class="flex min-h-11 items-center gap-3 text-[0.86rem] font-medium text-[#07182d]">
+            <input class="size-4 accent-[#007653]" type="checkbox" formControlName="freeDeliveryThresholdEnabled" />
+            Enable Free Delivery over $50
+          </label>
+        </div>
+      </section>
+
+      <section class="rounded-lg border border-[#dce4ee] bg-white p-8 shadow-[0_8px_22px_rgba(15,23,42,0.025)]">
+        <h3 class="mb-7 flex items-center gap-2 text-[1rem] font-semibold text-[#007653]">
+          <i class="uil uil-robot text-[1.25rem]" aria-hidden="true"></i>
+          Assistant Settings
+        </h3>
+
+        <div class="grid gap-6">
+          <div class="grid gap-2">
+            <span class="text-[0.82rem] font-medium text-[#6a7488]">AI Voice/Tone</span>
+            <div class="grid grid-cols-4 gap-3 max-[900px]:grid-cols-2">
+              @for (tone of assistantToneOptions; track tone.value) {
+                <label
+                  class="flex min-h-10 cursor-pointer items-center justify-center rounded border px-3 text-[0.82rem] font-semibold"
+                  [style.border-color]="restaurantForm.controls.assistantTone.value === tone.value ? '#007653' : '#c6d2ca'"
+                  [style.background-color]="restaurantForm.controls.assistantTone.value === tone.value ? '#007653' : '#ffffff'"
+                  [style.color]="restaurantForm.controls.assistantTone.value === tone.value ? '#ffffff' : '#6a7488'"
+                >
+                  <input class="sr-only" type="radio" formControlName="assistantTone" [value]="tone.value" />
+                  {{ tone.label }}
+                </label>
+              }
+            </div>
+          </div>
+
+          <label class="grid gap-2">
+            <span class="text-[0.82rem] font-medium text-[#6a7488]">Automated Follow-up Delay (minutes)</span>
+            <select class="min-h-11 border border-[#c6d2ca] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" formControlName="followUpDelayMinutes">
+              <option [ngValue]="0">No delay</option>
+              <option [ngValue]="5">5 minutes</option>
+              <option [ngValue]="10">10 minutes</option>
+              <option [ngValue]="15">15 minutes</option>
+              <option [ngValue]="30">30 minutes</option>
+            </select>
+          </label>
+
+          <label class="grid gap-2">
+            <span class="text-[0.82rem] font-medium text-[#6a7488]">Assistant Personality Summary</span>
+            <textarea class="min-h-24 resize-y border border-[#c6d2ca] bg-white px-3 py-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" formControlName="assistantPersonalitySummary" placeholder='e.g. Always greet with "Hello Foodie!", emphasize speed, and use emoji selectively.'></textarea>
+          </label>
+        </div>
+      </section>
+
+      <section class="rounded-lg border border-[#dce4ee] bg-white p-8 shadow-[0_8px_22px_rgba(15,23,42,0.025)]">
+        <div class="mb-7 flex items-center justify-between gap-4">
+          <h3 class="m-0 flex items-center gap-2 text-[1rem] font-semibold text-[#007653]">
+            <i class="uil uil-clipboard-notes text-[1.25rem]" aria-hidden="true"></i>
+            Manager Numbers
+          </h3>
+          <span class="text-[0.78rem] font-bold text-[#007653]">Plan Limit: {{ selectedPlanLimit }}</span>
+        </div>
+
+        <div class="grid gap-3">
+          <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 max-[900px]:grid-cols-1">
+            <input class="min-h-11 border border-[#9ca8bb] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" formControlName="managerName1" placeholder="Manager Name" />
+            <input class="min-h-11 border border-[#9ca8bb] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" formControlName="managerPhone1" placeholder="+1..." />
+          </div>
+          <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 max-[900px]:grid-cols-1">
+            <input class="min-h-11 border border-[#9ca8bb] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" formControlName="managerName2" placeholder="Manager Name" />
+            <input class="min-h-11 border border-[#9ca8bb] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" formControlName="managerPhone2" placeholder="+1..." />
+          </div>
+        </div>
+      </section>
+    </form>
+  </div>
+
+  <footer class="fixed bottom-0 left-[15.5rem] right-0 z-20 flex min-h-20 items-center justify-between border-t border-[#c6d2ca] bg-white/95 px-8 backdrop-blur max-[900px]:left-0">
+    <a class="inline-flex min-h-11 items-center justify-center rounded border border-[#c6d2ca] bg-white px-7 text-[0.86rem] font-bold text-[#07182d] no-underline" routerLink="/dashboard/restaurants">
+      Cancel
+    </a>
+
+    <div class="flex min-w-0 items-center gap-4">
+      @if (errorMessage) {
+        <p class="m-0 max-w-[30rem] truncate text-right text-[0.8rem] font-semibold text-[#d71920]">
+          {{ errorMessage }}
+        </p>
+      }
+      <button class="min-h-11 cursor-pointer rounded border border-[#007653] bg-[#007653] px-8 text-[0.86rem] font-bold text-white shadow-[0_8px_18px_rgba(0,118,83,0.22)] disabled:opacity-60" type="button" [disabled]="isSaving" (click)="saveRestaurant()">
+        {{ isSaving ? 'Saving...' : pageCopy.saveRestaurantLabel }}
+      </button>
+    </div>
+  </footer>
+</section>
