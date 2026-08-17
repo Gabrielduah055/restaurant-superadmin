@@ -1,5 +1,5 @@
-import { Component, inject } from '@angular/core';
-import { FormArray, FormControl, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, inject, OnInit } from '@angular/core';
+import { AbstractControl, FormArray, FormControl, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { ASSISTANT_TONE_OPTIONS } from '@core/constants/restaurant.constants';
@@ -28,7 +28,7 @@ interface WizardStep {
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './add-restaurant.component.html',
 })
-export class AddRestaurantComponent {
+export class AddRestaurantComponent implements OnInit {
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly restaurantService = inject(RestaurantService);
   private readonly router = inject(Router);
@@ -70,11 +70,11 @@ export class AddRestaurantComponent {
     ordering: this.formBuilder.group({
       allowTakeaway: [false],
       deliveryEnabled: [false],
-      deliveryRadiusKm: [10, Validators.min(0)],
+      deliveryRadiusKm: new FormControl<number | null>(null, Validators.min(0)),
       deliveryAreas: [''],
-      minimumOrderValue: [0, Validators.min(0)],
+      minimumOrderValue: new FormControl<number | null>(null, Validators.min(0)),
       deliveryPricingType: ['flat' as DeliveryPricingType, Validators.required],
-      flatFee: [0, Validators.min(0)],
+      flatFee: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
       freeDeliveryThresholdEnabled: [false],
       freeDeliveryThreshold: new FormControl<number | null>(null, Validators.min(0)),
       zones: this.formBuilder.array([] as ReturnType<AddRestaurantComponent['createZoneControl']>[]),
@@ -84,17 +84,17 @@ export class AddRestaurantComponent {
       assistantTone: ['friendly', Validators.required],
       assistantPersonalitySummary: [''],
       followUpEnabled: [true],
-      followUpDelayMinutes: [3, Validators.min(1)],
+      followUpDelayMinutes: new FormControl<number | null>(3, [Validators.required, Validators.min(0)]),
       ownerDailySummaryEnabled: [false],
-      ownerDailySummaryTime: ['08:00'],
+      ownerDailySummaryTime: ['08:00', [Validators.required, Validators.pattern(/^\d{2}:\d{2}$/)]],
       ownerWeeklySummaryEnabled: [false],
-      ownerWeeklySummaryDay: ['monday' as OwnerSummaryWeekday],
-      ownerWeeklySummaryTime: ['08:00'],
+      ownerWeeklySummaryDay: ['monday' as OwnerSummaryWeekday, Validators.required],
+      ownerWeeklySummaryTime: ['08:00', [Validators.required, Validators.pattern(/^\d{2}:\d{2}$/)]],
       ownerPendingActionReminderEnabled: [false],
-      ownerPendingActionReminderDelayMinutes: [3, Validators.min(1)],
+      ownerPendingActionReminderDelayMinutes: new FormControl<number | null>(3, [Validators.required, Validators.min(1)]),
       orderCheckInEnabled: [true],
-      pickupCheckInDelayMinutes: [45, Validators.min(1)],
-      deliveryCheckInDelayMinutes: [75, Validators.min(1)],
+      pickupCheckInDelayMinutes: new FormControl<number | null>(45, [Validators.required, Validators.min(1)]),
+      deliveryCheckInDelayMinutes: new FormControl<number | null>(75, [Validators.required, Validators.min(1)]),
     }),
     subscription: this.formBuilder.group({
       subscriptionAmount: new FormControl<number | null>(null, Validators.min(0)),
@@ -116,6 +116,23 @@ export class AddRestaurantComponent {
   get subscriptionForm() { return this.restaurantForm.controls.subscription; }
   get managers(): FormArray<ReturnType<AddRestaurantComponent['createManagerControl']>> { return this.contactsForm.controls.managers; }
   get zones(): FormArray<ReturnType<AddRestaurantComponent['createZoneControl']>> { return this.orderingForm.controls.zones; }
+
+  ngOnInit(): void {
+    this.orderingForm.controls.deliveryEnabled.valueChanges.subscribe(() => this.syncOrderingControls());
+    this.orderingForm.controls.deliveryPricingType.valueChanges.subscribe(() => this.syncOrderingControls());
+    this.orderingForm.controls.freeDeliveryThresholdEnabled.valueChanges.subscribe(() => this.syncOrderingControls());
+    this.orderingForm.controls.allowTakeaway.valueChanges.subscribe(() => this.syncPickupAddressRequirement());
+
+    this.aiForm.controls.followUpEnabled.valueChanges.subscribe(() => this.syncAiControls());
+    this.aiForm.controls.ownerDailySummaryEnabled.valueChanges.subscribe(() => this.syncAiControls());
+    this.aiForm.controls.ownerWeeklySummaryEnabled.valueChanges.subscribe(() => this.syncAiControls());
+    this.aiForm.controls.ownerPendingActionReminderEnabled.valueChanges.subscribe(() => this.syncAiControls());
+    this.aiForm.controls.orderCheckInEnabled.valueChanges.subscribe(() => this.syncAiControls());
+
+    this.syncOrderingControls();
+    this.syncAiControls();
+    this.syncPickupAddressRequirement();
+  }
 
   continue(): void {
     this.errorMessage = '';
@@ -150,9 +167,7 @@ export class AddRestaurantComponent {
   }
 
   onPricingTypeChange(): void {
-    if (this.orderingForm.controls.deliveryPricingType.value === 'zone_based' && !this.zones.length) {
-      this.addZone();
-    }
+    this.syncOrderingControls();
   }
 
   async createRestaurant(): Promise<void> {
@@ -173,13 +188,15 @@ export class AddRestaurantComponent {
     }
   }
 
-  isInvalid(control: FormControl<string> | FormControl<number> | FormControl<number | null>): boolean {
-    return control.invalid && control.touched;
-  }
-
   private isCurrentStepValid(): boolean {
     const control = this.getCurrentStepControl();
     control.markAllAsTouched();
+
+    if (this.currentStep === 7 && this.orderingForm.controls.allowTakeaway.value && !this.businessForm.controls.pickupAddress.value.trim()) {
+      this.businessForm.controls.pickupAddress.markAsTouched();
+      this.errorMessage = 'Add a pickup / business address in the Business step before creating a takeaway-enabled restaurant.';
+      return false;
+    }
 
     const orderingIsValid = this.currentStep !== 4 || this.isOrderingValid();
     if (control.valid && orderingIsValid) return true;
@@ -204,7 +221,7 @@ export class AddRestaurantComponent {
     if (!this.orderingForm.controls.deliveryEnabled.value) return true;
     const ordering = this.orderingForm.controls;
     const type = ordering.deliveryPricingType.value;
-    if (type === 'flat') return ordering.flatFee.valid && (!ordering.freeDeliveryThresholdEnabled.value || ordering.freeDeliveryThreshold.valid && ordering.freeDeliveryThreshold.value !== null);
+    if (type === 'flat') return ordering.flatFee.valid && ordering.flatFee.value !== null && (!ordering.freeDeliveryThresholdEnabled.value || ordering.freeDeliveryThreshold.valid && ordering.freeDeliveryThreshold.value !== null);
     if (type === 'zone_based') return this.zones.length > 0 && this.zones.valid;
     return true;
   }
@@ -224,12 +241,14 @@ export class AddRestaurantComponent {
       wasenderSessionId: value.whatsapp.wasenderSessionId.trim(),
       whatsappNumber: value.whatsapp.whatsappNumber.trim(),
       deliveryEnabled: value.ordering.deliveryEnabled,
-      deliveryAreas: this.toList(value.ordering.deliveryAreas),
+      deliveryAreas: value.ordering.deliveryEnabled ? this.toList(value.ordering.deliveryAreas) : [],
       allowTakeaway: value.ordering.allowTakeaway,
-      freeDeliveryThresholdEnabled: value.ordering.freeDeliveryThresholdEnabled,
+      freeDeliveryThresholdEnabled: value.ordering.deliveryEnabled
+        && value.ordering.deliveryPricingType === 'flat'
+        && value.ordering.freeDeliveryThresholdEnabled,
       assistantTone: value.ai.assistantTone as CreateRestaurantRequest['assistantTone'],
       followUpEnabled: value.ai.followUpEnabled,
-      followUpDelayMinutes: Number(value.ai.followUpDelayMinutes),
+      followUpDelayMinutes: this.toNumberOrDefault(value.ai.followUpDelayMinutes, 3),
       timezone: value.business.timezone.trim(),
       ownerDailySummaryEnabled: value.ai.ownerDailySummaryEnabled,
       ownerDailySummaryTime: value.ai.ownerDailySummaryTime,
@@ -237,10 +256,10 @@ export class AddRestaurantComponent {
       ownerWeeklySummaryDay: value.ai.ownerWeeklySummaryDay,
       ownerWeeklySummaryTime: value.ai.ownerWeeklySummaryTime,
       ownerPendingActionReminderEnabled: value.ai.ownerPendingActionReminderEnabled,
-      ownerPendingActionReminderDelayMinutes: Number(value.ai.ownerPendingActionReminderDelayMinutes),
+      ownerPendingActionReminderDelayMinutes: this.toNumberOrDefault(value.ai.ownerPendingActionReminderDelayMinutes, 3),
       orderCheckInEnabled: value.ai.orderCheckInEnabled,
-      pickupCheckInDelayMinutes: Number(value.ai.pickupCheckInDelayMinutes),
-      deliveryCheckInDelayMinutes: Number(value.ai.deliveryCheckInDelayMinutes),
+      pickupCheckInDelayMinutes: this.toNumberOrDefault(value.ai.pickupCheckInDelayMinutes, 45),
+      deliveryCheckInDelayMinutes: this.toNumberOrDefault(value.ai.deliveryCheckInDelayMinutes, 75),
     };
 
     this.assignOptional(payload, 'ownerName', value.contacts.ownerName);
@@ -251,15 +270,15 @@ export class AddRestaurantComponent {
     this.assignOptional(payload, 'wasenderApiToken', value.whatsapp.wasenderApiToken);
     this.assignOptional(payload, 'assistantPersonalitySummary', value.ai.assistantPersonalitySummary);
     this.assignOptional(payload, 'subscriptionRenewalDate', value.subscription.subscriptionRenewalDate);
-    this.assignOptional(payload, 'deliveryFeeNote', value.ordering.deliveryFeeNote);
+    if (value.ordering.deliveryEnabled) this.assignOptional(payload, 'deliveryFeeNote', value.ordering.deliveryFeeNote);
 
     if (managerContacts.length) payload.managerContacts = managerContacts;
     if (value.subscription.subscriptionAmount !== null) payload.subscriptionAmount = Number(value.subscription.subscriptionAmount);
     payload.billingStatus = value.subscription.billingStatus;
 
     if (value.ordering.deliveryEnabled) {
-      payload.deliveryRadiusKm = Number(value.ordering.deliveryRadiusKm);
-      payload.minimumOrderValue = Number(value.ordering.minimumOrderValue);
+      if (value.ordering.deliveryRadiusKm !== null) payload.deliveryRadiusKm = Number(value.ordering.deliveryRadiusKm);
+      if (value.ordering.minimumOrderValue !== null) payload.minimumOrderValue = Number(value.ordering.minimumOrderValue);
       payload.deliveryPricing = this.toDeliveryPricing(value.ordering.deliveryPricingType, value.ordering);
     }
 
@@ -295,7 +314,67 @@ export class AddRestaurantComponent {
   }
 
   private createZoneControl() {
-    return this.formBuilder.group({ name: ['', Validators.required], aliases: [''], fee: [0, Validators.min(0)] });
+    return this.formBuilder.group({
+      name: ['', Validators.required],
+      aliases: [''],
+      fee: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
+    });
+  }
+
+  private syncOrderingControls(): void {
+    const ordering = this.orderingForm.controls;
+    const deliveryEnabled = ordering.deliveryEnabled.value;
+    this.setControlEnabled(ordering.deliveryRadiusKm, deliveryEnabled);
+    this.setControlEnabled(ordering.deliveryAreas, deliveryEnabled);
+    this.setControlEnabled(ordering.minimumOrderValue, deliveryEnabled);
+    this.setControlEnabled(ordering.deliveryPricingType, deliveryEnabled);
+    this.setControlEnabled(ordering.deliveryFeeNote, deliveryEnabled);
+
+    if (!deliveryEnabled) {
+      this.setControlEnabled(ordering.flatFee, false);
+      this.setControlEnabled(ordering.freeDeliveryThresholdEnabled, false);
+      this.setControlEnabled(ordering.freeDeliveryThreshold, false);
+      this.setControlEnabled(this.zones, false);
+      return;
+    }
+
+    const type = ordering.deliveryPricingType.value;
+    const isFlat = type === 'flat';
+    this.setControlEnabled(ordering.flatFee, isFlat);
+    this.setControlEnabled(ordering.freeDeliveryThresholdEnabled, isFlat);
+    this.setControlEnabled(ordering.freeDeliveryThreshold, isFlat && ordering.freeDeliveryThresholdEnabled.value);
+    this.setControlEnabled(this.zones, type === 'zone_based');
+    if (type === 'zone_based' && !this.zones.length) this.addZone();
+  }
+
+  private syncAiControls(): void {
+    const ai = this.aiForm.controls;
+    this.setControlEnabled(ai.followUpDelayMinutes, ai.followUpEnabled.value);
+    this.setControlEnabled(ai.ownerDailySummaryTime, ai.ownerDailySummaryEnabled.value);
+    this.setControlEnabled(ai.ownerWeeklySummaryDay, ai.ownerWeeklySummaryEnabled.value);
+    this.setControlEnabled(ai.ownerWeeklySummaryTime, ai.ownerWeeklySummaryEnabled.value);
+    this.setControlEnabled(ai.ownerPendingActionReminderDelayMinutes, ai.ownerPendingActionReminderEnabled.value);
+    this.setControlEnabled(ai.pickupCheckInDelayMinutes, ai.orderCheckInEnabled.value);
+    this.setControlEnabled(ai.deliveryCheckInDelayMinutes, ai.orderCheckInEnabled.value);
+  }
+
+  private syncPickupAddressRequirement(): void {
+    const pickupAddress = this.businessForm.controls.pickupAddress;
+    if (this.orderingForm.controls.allowTakeaway.value) {
+      pickupAddress.addValidators(Validators.required);
+    } else {
+      pickupAddress.removeValidators(Validators.required);
+    }
+    pickupAddress.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private setControlEnabled(control: AbstractControl, enabled: boolean): void {
+    if (enabled && control.disabled) control.enable({ emitEvent: false });
+    if (!enabled && control.enabled) control.disable({ emitEvent: false });
+  }
+
+  private toNumberOrDefault(value: number | null, defaultValue: number): number {
+    return value === null ? defaultValue : Number(value);
   }
 
   private toList(value: string): string[] {
