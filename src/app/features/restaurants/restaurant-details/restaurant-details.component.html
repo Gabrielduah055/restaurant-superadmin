@@ -25,6 +25,7 @@
       </div>
     </header>
 
+    @if (wasJustCreated) { <div class="mb-5 rounded-md border border-[#b6dfcd] bg-[#effaf4] px-4 py-4 text-sm text-[#126a49]"><strong class="block">Restaurant created successfully</strong><span class="mt-1 block">{{ restaurant.name }} is now configured in OrderBridge. Business profile, authorized contacts, WhatsApp, ordering, AI settings, and subscription details were saved.</span><span class="mt-2 block">Menu setup is pending restaurant verification through the approved OrderBridge onboarding/menu workflow.</span></div> }
     @if (successMessage) { <div class="mb-5 rounded-md border border-[#b6dfcd] bg-[#effaf4] px-4 py-3 text-sm font-medium text-[#126a49]">{{ successMessage }}</div> }
     @if (errorMessage) { <div class="mb-5 rounded-md border border-[#ffc9c4] bg-[#fff1f0] px-4 py-3 text-sm font-medium text-[#d71920]">{{ errorMessage }}</div> }
 

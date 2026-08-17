@@ -35,6 +35,7 @@ export class RestaurantDetailsComponent implements OnInit {
   editingTab?: Exclude<RestaurantTab, 'Overview' | 'Subscription'>;
   isLoading = false;
   isSaving = false;
+  wasJustCreated = false;
   errorMessage = '';
   successMessage = '';
 
@@ -83,6 +84,7 @@ export class RestaurantDetailsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.wasJustCreated = this.route.snapshot.queryParamMap.get('created') === '1';
     void this.loadRestaurant();
   }
 
