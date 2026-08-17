@@ -15,6 +15,8 @@ import {
 import { firebaseApp } from '@core/firebase-app';
 import { AuthUser } from '@core/models/user.model';
 
+export interface ProfileAvatar { photoUrl: string; initials: string; displayName: string; }
+
 @Injectable({
   providedIn: 'root',
 })
@@ -86,6 +88,13 @@ export class FirebaseAuthService {
   }
 
   get userPhotoUrl(): string {
-    return this.auth.currentUser?.photoURL ?? '';
+    const user = this.auth.currentUser;
+    return user?.photoURL || user?.providerData.find((provider) => provider.providerId === 'google.com')?.photoURL || '';
+  }
+
+  get profileAvatar(): ProfileAvatar {
+    const user = this.auth.currentUser;
+    const displayName = user?.displayName || user?.providerData.find((provider) => provider.displayName)?.displayName || user?.email || 'Admin User';
+    return { photoUrl: this.userPhotoUrl, displayName, initials: displayName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'A' };
   }
 }

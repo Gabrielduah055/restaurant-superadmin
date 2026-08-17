@@ -12,18 +12,18 @@
         type="button"
         (click)="profileMenuOpen = !profileMenuOpen"
       >
-        <span>Profile</span>
-        <img
+        <span class="hidden sm:inline">{{ adminName }}</span>
+        <span class="grid size-8 place-items-center overflow-hidden rounded-full border border-[#c6d2ca] bg-[#e6f7ed] text-[0.65rem] font-bold text-[#005f43]">@if (adminPhotoUrl) {<img
           class="size-8 rounded-full border border-[#c6d2ca] object-cover"
           [src]="adminPhotoUrl"
-          alt="Admin profile"
+          [alt]="adminName + ' profile photo'"
           (error)="profileImageFailed = true"
-        />
+        />} @else {<span>{{ adminInitials }}</span>}</span>
       </button>
 
       @if (profileMenuOpen) {
         <div class="absolute right-0 top-[calc(100%+0.7rem)] grid min-w-52 gap-3 rounded-md border border-[#c6d2ca] bg-white p-3 shadow-[0_14px_34px_rgba(15,23,42,0.12)]">
-          <p class="truncate text-[0.86rem] font-bold text-[#07182d]">{{ adminEmail }}</p>
+          <div><p class="truncate text-[0.86rem] font-bold text-[#07182d]">{{ adminName }}</p><small class="block truncate text-[0.72rem] text-[#48566d]">{{ adminEmail }}</small></div>
           <button
             class="inline-flex min-h-9 items-center justify-center gap-2 rounded border border-[#c6d2ca] bg-[#f4f7fb] px-3 text-[0.8rem] font-bold text-[#005f43]"
             type="button"
