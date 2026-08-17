@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { CurrencyPipe, DatePipe, TitleCasePipe } from '@angular/common';
+import { DatePipe, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormArray, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -21,7 +21,7 @@ type RestaurantTab = 'Overview' | 'Business' | 'Authorized Contacts' | 'WhatsApp
 
 @Component({
   selector: 'app-restaurant-details',
-  imports: [CurrencyPipe, DatePipe, ReactiveFormsModule, RouterLink, StatusBadgeComponent, TitleCasePipe],
+  imports: [DatePipe, DecimalPipe, ReactiveFormsModule, RouterLink, StatusBadgeComponent, TitleCasePipe],
   templateUrl: './restaurant-details.component.html',
 })
 export class RestaurantDetailsComponent implements OnInit {
@@ -63,18 +63,18 @@ export class RestaurantDetailsComponent implements OnInit {
   readonly aiForm = this.formBuilder.group({
     assistantTone: ['friendly' as AssistantTone, Validators.required],
     assistantPersonalitySummary: [''],
-    followUpEnabled: [false],
-    followUpDelayMinutes: [30, [Validators.min(1)]],
+    followUpEnabled: [true],
+    followUpDelayMinutes: [3, [Validators.min(1)]],
     ownerDailySummaryEnabled: [false],
-    ownerDailySummaryTime: ['18:00'],
+    ownerDailySummaryTime: ['08:00'],
     ownerWeeklySummaryEnabled: [false],
     ownerWeeklySummaryDay: ['monday'],
-    ownerWeeklySummaryTime: ['09:00'],
+    ownerWeeklySummaryTime: ['08:00'],
     ownerPendingActionReminderEnabled: [false],
-    ownerPendingActionReminderDelayMinutes: [60, [Validators.min(1)]],
-    orderCheckInEnabled: [false],
-    pickupCheckInDelayMinutes: [30, [Validators.min(1)]],
-    deliveryCheckInDelayMinutes: [45, [Validators.min(1)]],
+    ownerPendingActionReminderDelayMinutes: [3, [Validators.min(1)]],
+    orderCheckInEnabled: [true],
+    pickupCheckInDelayMinutes: [45, [Validators.min(1)]],
+    deliveryCheckInDelayMinutes: [75, [Validators.min(1)]],
   });
 
   constructor(
@@ -137,7 +137,16 @@ export class RestaurantDetailsComponent implements OnInit {
 
   async saveBusiness(): Promise<void> {
     if (!this.businessForm.valid) return this.markInvalid(this.businessForm);
-    await this.saveConfiguration('Business', this.businessForm.getRawValue());
+    const value = this.businessForm.getRawValue();
+    await this.saveConfiguration('Business', {
+      name: value.name.trim(),
+      ownerName: value.ownerName.trim() || undefined,
+      contactEmail: value.contactEmail.trim() || undefined,
+      primaryCuisine: value.primaryCuisine.trim() || undefined,
+      openingHours: value.openingHours.trim() || undefined,
+      pickupAddress: value.pickupAddress.trim() || undefined,
+      timezone: value.timezone.trim(),
+    });
   }
 
   async saveContacts(): Promise<void> {
@@ -166,9 +175,22 @@ export class RestaurantDetailsComponent implements OnInit {
 
   async saveAiAutomations(): Promise<void> {
     if (!this.aiForm.valid) return this.markInvalid(this.aiForm);
+    const value = this.aiForm.getRawValue();
     await this.saveConfiguration('AI & Automations', {
-      ...this.aiForm.getRawValue(),
-      ownerWeeklySummaryDay: this.aiForm.controls.ownerWeeklySummaryDay.value as CreateRestaurantRequest['ownerWeeklySummaryDay'],
+      assistantTone: value.assistantTone,
+      assistantPersonalitySummary: value.assistantPersonalitySummary.trim() || undefined,
+      followUpEnabled: value.followUpEnabled,
+      followUpDelayMinutes: value.followUpDelayMinutes,
+      ownerDailySummaryEnabled: value.ownerDailySummaryEnabled,
+      ownerDailySummaryTime: value.ownerDailySummaryTime,
+      ownerWeeklySummaryEnabled: value.ownerWeeklySummaryEnabled,
+      ownerWeeklySummaryDay: value.ownerWeeklySummaryDay as CreateRestaurantRequest['ownerWeeklySummaryDay'],
+      ownerWeeklySummaryTime: value.ownerWeeklySummaryTime,
+      ownerPendingActionReminderEnabled: value.ownerPendingActionReminderEnabled,
+      ownerPendingActionReminderDelayMinutes: value.ownerPendingActionReminderDelayMinutes,
+      orderCheckInEnabled: value.orderCheckInEnabled,
+      pickupCheckInDelayMinutes: value.pickupCheckInDelayMinutes,
+      deliveryCheckInDelayMinutes: value.deliveryCheckInDelayMinutes,
     });
   }
 
@@ -239,18 +261,18 @@ export class RestaurantDetailsComponent implements OnInit {
     this.aiForm.patchValue({
       assistantTone: restaurant.assistantTone ?? 'friendly',
       assistantPersonalitySummary: restaurant.assistantPersonalitySummary ?? '',
-      followUpEnabled: restaurant.followUpEnabled ?? false,
-      followUpDelayMinutes: restaurant.followUpDelayMinutes ?? 30,
+      followUpEnabled: restaurant.followUpEnabled ?? true,
+      followUpDelayMinutes: restaurant.followUpDelayMinutes ?? 3,
       ownerDailySummaryEnabled: restaurant.ownerDailySummaryEnabled ?? false,
-      ownerDailySummaryTime: restaurant.ownerDailySummaryTime ?? '18:00',
+      ownerDailySummaryTime: restaurant.ownerDailySummaryTime ?? '08:00',
       ownerWeeklySummaryEnabled: restaurant.ownerWeeklySummaryEnabled ?? false,
       ownerWeeklySummaryDay: restaurant.ownerWeeklySummaryDay ?? 'monday',
-      ownerWeeklySummaryTime: restaurant.ownerWeeklySummaryTime ?? '09:00',
+      ownerWeeklySummaryTime: restaurant.ownerWeeklySummaryTime ?? '08:00',
       ownerPendingActionReminderEnabled: restaurant.ownerPendingActionReminderEnabled ?? false,
-      ownerPendingActionReminderDelayMinutes: restaurant.ownerPendingActionReminderDelayMinutes ?? 60,
-      orderCheckInEnabled: restaurant.orderCheckInEnabled ?? false,
-      pickupCheckInDelayMinutes: restaurant.pickupCheckInDelayMinutes ?? 30,
-      deliveryCheckInDelayMinutes: restaurant.deliveryCheckInDelayMinutes ?? 45,
+      ownerPendingActionReminderDelayMinutes: restaurant.ownerPendingActionReminderDelayMinutes ?? 3,
+      orderCheckInEnabled: restaurant.orderCheckInEnabled ?? true,
+      pickupCheckInDelayMinutes: restaurant.pickupCheckInDelayMinutes ?? 45,
+      deliveryCheckInDelayMinutes: restaurant.deliveryCheckInDelayMinutes ?? 75,
     });
   }
 

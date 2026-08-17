@@ -18,7 +18,7 @@
       <div class="flex flex-wrap items-center gap-3">
         @if (restaurant.status === 'active') {
           <button class="min-h-10 rounded border border-[#c6d2ca] bg-white px-4 text-sm font-bold text-[#07182d] disabled:opacity-60" type="button" [disabled]="isSaving" (click)="changeStatus('paused')">Pause account</button>
-        } @else if (restaurant.status === 'paused') {
+        } @else if (restaurant.status === 'paused' || restaurant.status === 'trial') {
           <button class="min-h-10 rounded bg-[#007653] px-4 text-sm font-bold text-white disabled:opacity-60" type="button" [disabled]="isSaving" (click)="changeStatus('active')">Activate account</button>
         }
         <button class="min-h-10 rounded bg-[#007653] px-4 text-sm font-bold text-white" type="button" (click)="setActiveTab('Business'); beginEdit('Business')">Edit configuration</button>
@@ -67,7 +67,7 @@
     }
 
     @if (activeTab === 'Subscription') {
-      <section class="rounded-lg border border-[#c6d2ca] bg-white p-5"><h3 class="m-0 text-base font-semibold text-[#07182d]">Subscription</h3><p class="mt-1 mb-5 text-sm text-[#48566d]">Billing is read-only in this workspace.</p><dl class="grid gap-4 sm:grid-cols-3 text-sm"><div><dt class="text-[#48566d]">Monthly amount</dt><dd class="m-0 mt-1 font-semibold text-[#07182d]">{{ restaurant.subscriptionAmount != null ? (restaurant.subscriptionAmount | currency) : 'Not recorded' }}</dd></div><div><dt class="text-[#48566d]">Payment status</dt><dd class="m-0 mt-1 font-semibold text-[#07182d]">{{ (restaurant.billingStatus || 'inactive') | titlecase }}</dd></div><div><dt class="text-[#48566d]">Renewal date</dt><dd class="m-0 mt-1 font-semibold text-[#07182d]">{{ restaurant.subscriptionRenewalDate ? (restaurant.subscriptionRenewalDate | date) : 'Not recorded' }}</dd></div></dl></section>
+      <section class="rounded-lg border border-[#c6d2ca] bg-white p-5"><h3 class="m-0 text-base font-semibold text-[#07182d]">Subscription</h3><p class="mt-1 mb-5 text-sm text-[#48566d]">Billing is read-only in this workspace.</p><dl class="grid gap-4 sm:grid-cols-3 text-sm"><div><dt class="text-[#48566d]">Monthly amount</dt><dd class="m-0 mt-1 font-semibold text-[#07182d]">{{ restaurant.subscriptionAmount != null ? ('GHS ' + (restaurant.subscriptionAmount | number: '1.2-2': 'en-US')) : 'Not recorded' }}</dd></div><div><dt class="text-[#48566d]">Payment status</dt><dd class="m-0 mt-1 font-semibold text-[#07182d]">{{ (restaurant.billingStatus || 'inactive') | titlecase }}</dd></div><div><dt class="text-[#48566d]">Renewal date</dt><dd class="m-0 mt-1 font-semibold text-[#07182d]">{{ restaurant.subscriptionRenewalDate ? (restaurant.subscriptionRenewalDate | date) : 'Not recorded' }}</dd></div></dl></section>
     }
   }
 </section>
