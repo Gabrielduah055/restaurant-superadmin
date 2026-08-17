@@ -49,6 +49,13 @@ export const routes: Routes = [
             (m) => m.RestaurantDetailsComponent,
           ),
       },
+      {
+        path: 'subscriptions',
+        loadComponent: () =>
+          import('@features/subscriptions/subscriptions.component').then(
+            (m) => m.SubscriptionsComponent,
+          ),
+      },
     ],
   },
   {
