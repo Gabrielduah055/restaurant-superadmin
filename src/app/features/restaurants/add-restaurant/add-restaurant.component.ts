@@ -86,7 +86,7 @@ export class AddRestaurantComponent {
       name: value.name.trim(),
       ownerPhone: value.ownerPhone.trim(),
       managerPhones: this.toManagerContacts(value).map((manager) => manager.phone),
-      plan: 'starter',
+      plan: 'growth',
       status: value.status as CreateRestaurantRequest['status'],
       wasenderSessionId: value.wasenderSessionId.trim(),
       whatsappNumber: value.whatsappNumber.trim(),

@@ -40,6 +40,7 @@ export class LoginComponent {
       const profile = await this.authSession.loadProfile(true);
       if (profile?.role !== 'super_admin') {
         await this.authService.logout();
+        this.authSession.clear();
         this.errorMessage = 'This account does not have OrderBridge super-admin access.';
         return;
       }
@@ -65,6 +66,7 @@ export class LoginComponent {
       const profile = await this.authSession.loadProfile(true);
       if (profile?.role !== 'super_admin') {
         await this.authService.logout();
+        this.authSession.clear();
         this.errorMessage = 'This account does not have OrderBridge super-admin access.';
         return;
       }
