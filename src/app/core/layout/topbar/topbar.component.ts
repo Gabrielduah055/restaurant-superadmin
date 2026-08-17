@@ -1,21 +1,22 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { FirebaseAuthService } from '@core/auth/firebase-auth.service';
-import { SearchInputComponent } from '@shared/components/search-input/search-input.component';
+import { AuthSessionService } from '@core/auth/auth-session.service';
 
 @Component({
   selector: 'app-topbar',
-  imports: [SearchInputComponent],
+  imports: [],
   templateUrl: './topbar.component.html',
 })
 export class TopbarComponent {
-  globalSearch = '';
+  @Output() menuRequested = new EventEmitter<void>();
   profileMenuOpen = false;
   profileImageFailed = false;
   isLoggingOut = false;
 
   constructor(
     private readonly authService: FirebaseAuthService,
+    private readonly authSession: AuthSessionService,
     private readonly router: Router,
   ) {}
 
@@ -36,6 +37,7 @@ export class TopbarComponent {
 
     try {
       await this.authService.logout();
+      this.authSession.clear();
       await this.router.navigate(['/login']);
     } finally {
       this.isLoggingOut = false;

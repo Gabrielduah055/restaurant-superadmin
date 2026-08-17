@@ -1,4 +1,4 @@
-<aside class="fixed inset-y-0 left-0 z-30 flex w-[15.5rem] flex-col border-r border-[#c6d2ca] bg-[#f5f7ff]">
+<aside class="fixed inset-y-0 left-0 z-30 flex w-[15.5rem] -translate-x-full flex-col border-r border-[#c6d2ca] bg-[#f5f7ff] transition-transform lg:translate-x-0" [class.translate-x-0]="mobileOpen">
   <div class="px-4 pb-3 pt-9">
     <h1 class="m-0 text-[1.1rem] font-semibold leading-none text-[#07182d]">OrderBridge AI</h1>
     <p class="mt-2 text-[0.6rem] font-bold uppercase tracking-[0.13em] text-[#27344c]">Super Admin</p>
@@ -11,6 +11,7 @@
         [routerLink]="item.route"
         routerLinkActive="border-[#007653] bg-[#dfe7ff] text-[#005f43] font-semibold"
         [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+        (click)="closeMobileNavigation()"
       >
         <i class="uil {{ item.icon }} w-5 text-[1.28rem] text-current" aria-hidden="true"></i>
         <span>{{ item.label }}</span>

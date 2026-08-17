@@ -12,10 +12,6 @@
       <div>
         <div class="mb-2 flex items-center gap-3">
           <h2 class="m-0 text-[2rem] font-bold leading-tight text-[#07182d]">{{ restaurant.name }}</h2>
-          <span class="inline-flex items-center gap-1 rounded-full bg-[#007653] px-3 py-1 text-[0.7rem] font-bold text-white">
-            <i class="uil uil-award" aria-hidden="true"></i>
-            {{ getPlanLabel(restaurant.plan) }} Plan
-          </span>
           <span class="inline-flex items-center gap-1 rounded-full bg-[#dfe7ff] px-3 py-1 text-[0.7rem] font-bold text-[#40506a]">
             <i class="uil uil-check-circle" aria-hidden="true"></i>
             {{ getStatusLabel(restaurant.status) }}
@@ -29,10 +25,6 @@
           <i class="uil uil-arrow-left" aria-hidden="true"></i>
           Back
         </a>
-        <button class="inline-flex min-h-10 items-center gap-2 rounded border border-[#c6d2ca] bg-white px-4 text-[0.82rem] font-bold text-[#07182d]" type="button">
-          <i class="uil uil-exchange" aria-hidden="true"></i>
-          Change Plan
-        </button>
       </div>
     </div>
 

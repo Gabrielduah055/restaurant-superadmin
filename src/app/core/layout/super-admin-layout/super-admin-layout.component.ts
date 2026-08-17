@@ -9,4 +9,6 @@ import { TopbarComponent } from '../topbar/topbar.component';
   templateUrl: './super-admin-layout.component.html',
   styleUrl: './super-admin-layout.component.scss',
 })
-export class SuperAdminLayoutComponent {}
+export class SuperAdminLayoutComponent {
+  mobileNavigationOpen = false;
+}

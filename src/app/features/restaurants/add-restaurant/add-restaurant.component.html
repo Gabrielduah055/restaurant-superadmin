@@ -97,38 +97,11 @@
       <section class="rounded-lg border border-[#dce4ee] bg-white p-8 shadow-[0_8px_22px_rgba(15,23,42,0.025)]">
         <h3 class="mb-7 flex items-center gap-2 text-[1rem] font-semibold text-[#007653]">
           <i class="uil uil-bill text-[1.25rem]" aria-hidden="true"></i>
-          Plan & Subscription
+          Account Status
         </h3>
-
-        <div class="grid grid-cols-3 gap-4 max-[1100px]:grid-cols-1">
-          @for (plan of planCards; track plan.value) {
-            <label
-              class="min-h-48 cursor-pointer rounded-md border bg-white p-6 transition"
-              [style.border-color]="restaurantForm.controls.plan.value === plan.value ? '#007653' : '#c6d2ca'"
-              [style.background-color]="restaurantForm.controls.plan.value === plan.value ? '#f0fff7' : '#ffffff'"
-            >
-              <input class="sr-only" type="radio" formControlName="plan" [value]="plan.value" />
-              <span class="mb-5 flex items-center justify-between gap-4">
-                <span class="rounded-sm px-2 py-1 text-[0.68rem] font-bold uppercase" [style.background-color]="restaurantForm.controls.plan.value === plan.value ? '#007653' : '#dfe7ff'" [style.color]="restaurantForm.controls.plan.value === plan.value ? '#ffffff' : '#005f43'">
-                  {{ plan.label }}
-                </span>
-                <strong class="text-[1rem] text-[#07182d]">{{ plan.price }}</strong>
-              </span>
-              <span class="grid gap-4">
-                @for (feature of plan.features; track feature) {
-                  <span class="flex items-center gap-2 text-[0.82rem] font-medium text-[#6a7488]">
-                    <i class="uil uil-check-circle text-[#007653]" aria-hidden="true"></i>
-                    {{ feature }}
-                  </span>
-                }
-              </span>
-            </label>
-          }
-        </div>
-
-        <div class="mt-7 grid grid-cols-2 gap-6 max-[900px]:grid-cols-1">
+        <div class="grid grid-cols-2 gap-6 max-[900px]:grid-cols-1">
           <label class="grid gap-2">
-            <span class="text-[0.82rem] font-medium text-[#6a7488]">Subscription Status</span>
+            <span class="text-[0.82rem] font-medium text-[#6a7488]">Account Status</span>
             <select class="min-h-11 border border-[#c6d2ca] bg-white px-3 text-[0.9rem] text-[#07182d] outline-none focus:border-[#007653]" formControlName="status">
               @for (status of statusOptions; track status.value) {
                 <option [value]="status.value">{{ status.label }}</option>
@@ -230,7 +203,6 @@
             <i class="uil uil-clipboard-notes text-[1.25rem]" aria-hidden="true"></i>
             Manager Numbers
           </h3>
-          <span class="text-[0.78rem] font-bold text-[#007653]">Plan Limit: {{ selectedPlanLimit }}</span>
         </div>
 
         <div class="grid gap-3">

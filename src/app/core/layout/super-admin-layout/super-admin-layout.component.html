@@ -1,8 +1,11 @@
 <main class="min-h-screen bg-[#f7f9ff] text-[#07182d]">
-  <app-sidebar />
+  @if (mobileNavigationOpen) {
+    <button class="fixed inset-0 z-20 bg-slate-950/30 lg:hidden" type="button" aria-label="Close navigation" (click)="mobileNavigationOpen = false"></button>
+  }
+  <app-sidebar [(mobileOpen)]="mobileNavigationOpen" />
 
-  <section class="min-h-screen pl-[15.5rem]">
-    <app-topbar />
+  <section class="min-h-screen lg:pl-[15.5rem]">
+    <app-topbar (menuRequested)="mobileNavigationOpen = true" />
     <router-outlet />
   </section>
 </main>

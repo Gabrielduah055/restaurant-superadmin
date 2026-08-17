@@ -7,5 +7,5 @@ import { Component, Input } from '@angular/core';
 })
 export class StatusBadgeComponent {
   @Input({ required: true }) label = '';
-  @Input() tone: 'danger' | 'warning' | 'neutral' | 'primary' | 'secondary' | 'muted' = 'neutral';
+  @Input() tone: 'danger' | 'warning' | 'neutral' | 'primary' | 'secondary' | 'muted' | 'success' = 'neutral';
 }
