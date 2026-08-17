@@ -25,16 +25,16 @@
     (click)="logout()"
     [disabled]="isLoggingOut"
   >
-    <span class="size-9 overflow-hidden rounded-full border border-[#c6d2ca] bg-white">
-      <img
+    <span class="grid size-9 place-items-center overflow-hidden rounded-full border border-[#c6d2ca] bg-[#e6f7ed] text-[0.7rem] font-bold text-[#005f43]">
+      @if (adminPhotoUrl) {<img
         class="size-full object-cover"
         [src]="adminPhotoUrl"
-        alt="Admin profile"
+        [alt]="adminName + ' profile photo'"
         (error)="profileImageFailed = true"
-      />
+      />} @else {<span>{{ adminInitials }}</span>}
     </span>
     <span class="min-w-0">
-      <strong class="block truncate text-[0.7rem] font-bold text-[#07182d]">Admin User</strong>
+      <strong class="block truncate text-[0.7rem] font-bold text-[#07182d]">{{ adminName }}</strong>
       <small class="block truncate text-[0.6rem] font-bold text-[#48566d]">
         {{ isLoggingOut ? 'Signing out...' : adminEmail }}
       </small>

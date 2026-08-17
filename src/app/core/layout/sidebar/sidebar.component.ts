@@ -25,9 +25,11 @@ export class SidebarComponent {
   get adminEmail(): string {
     return this.authService.userEmail;
   }
+  get adminName(): string { return this.authService.profileAvatar.displayName; }
+  get adminInitials(): string { return this.authService.profileAvatar.initials; }
 
   get adminPhotoUrl(): string {
-    return this.profileImageFailed ? 'admin-profile.svg' : this.authService.userPhotoUrl || 'admin-profile.svg';
+    return this.profileImageFailed ? '' : this.authService.profileAvatar.photoUrl;
   }
 
   async logout(): Promise<void> {

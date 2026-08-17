@@ -1,165 +1,73 @@
-<section class="px-8 py-8">
+<section class="px-4 py-6 sm:px-8 sm:py-8">
   @if (isLoading) {
-    <div class="rounded-lg border border-[#c6d2ca] bg-white p-6 text-[0.86rem] font-medium text-[#48566d]">
-      Loading restaurant details...
-    </div>
-  } @else if (errorMessage) {
-    <div class="rounded-md border border-[#ffc9c4] bg-[#fff1f0] px-4 py-3 text-[0.84rem] font-medium text-[#d71920]">
-      {{ errorMessage }}
-    </div>
+    <div class="rounded-lg border border-[#c6d2ca] bg-white p-6 text-sm font-medium text-[#48566d]">Loading account configuration...</div>
+  } @else if (errorMessage && !restaurant) {
+    <div class="rounded-md border border-[#ffc9c4] bg-[#fff1f0] px-4 py-3 text-sm font-medium text-[#d71920]">{{ errorMessage }}</div>
   } @else if (restaurant) {
-    <div class="mb-8 flex items-start justify-between gap-4">
+    <header class="mb-6 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
       <div>
-        <div class="mb-2 flex items-center gap-3">
-          <h2 class="m-0 text-[2rem] font-bold leading-tight text-[#07182d]">{{ restaurant.name }}</h2>
-          <span class="inline-flex items-center gap-1 rounded-full bg-[#dfe7ff] px-3 py-1 text-[0.7rem] font-bold text-[#40506a]">
-            <i class="uil uil-check-circle" aria-hidden="true"></i>
-            {{ getStatusLabel(restaurant.status) }}
-          </span>
+        <a class="mb-3 inline-flex items-center gap-2 text-sm font-semibold text-[#40506a] no-underline" routerLink="/dashboard/restaurants"><i class="uil uil-arrow-left" aria-hidden="true"></i> Restaurants</a>
+        <div class="flex flex-wrap items-center gap-2">
+          <h2 class="m-0 text-3xl font-bold text-[#07182d]">{{ restaurant.name }}</h2>
+          <app-status-badge [label]="getStatusLabel(restaurant.status)" [tone]="getAccountTone(restaurant.status)" />
+          <app-status-badge [label]="getWhatsAppLabel()" [tone]="restaurant.wasenderSessionId ? 'success' : 'secondary'" />
+          <app-status-badge [label]="(restaurant.billingStatus || 'inactive') | titlecase" [tone]="getBillingTone()" />
         </div>
-        <p class="m-0 text-[0.86rem] text-[#48566d]">ID: {{ restaurant._id }} · Slug: {{ restaurant.slug }}</p>
+        <p class="mt-2 mb-0 text-sm text-[#48566d]">Last updated {{ restaurant.updatedAt ? (restaurant.updatedAt | date: 'medium') : 'not available' }}</p>
       </div>
-
-      <div class="flex items-center gap-3">
-        <a class="inline-flex min-h-10 items-center gap-2 rounded border border-[#c6d2ca] bg-white px-4 text-[0.82rem] font-bold text-[#07182d] no-underline" routerLink="/dashboard/restaurants">
-          <i class="uil uil-arrow-left" aria-hidden="true"></i>
-          Back
-        </a>
+      <div class="flex flex-wrap items-center gap-3">
+        @if (restaurant.status === 'active') {
+          <button class="min-h-10 rounded border border-[#c6d2ca] bg-white px-4 text-sm font-bold text-[#07182d] disabled:opacity-60" type="button" [disabled]="isSaving" (click)="changeStatus('paused')">Pause account</button>
+        } @else if (restaurant.status === 'paused' || restaurant.status === 'trial') {
+          <button class="min-h-10 rounded bg-[#007653] px-4 text-sm font-bold text-white disabled:opacity-60" type="button" [disabled]="isSaving" (click)="changeStatus('active')">Activate account</button>
+        }
+        <button class="min-h-10 rounded bg-[#007653] px-4 text-sm font-bold text-white" type="button" (click)="setActiveTab('Business'); beginEdit('Business')">Edit configuration</button>
       </div>
-    </div>
+    </header>
 
-    @if (getSessionState(restaurant) === 'disconnected') {
-      <div class="mb-8 flex items-center justify-between rounded-lg border border-[#f1d3d0] bg-[#fff7f7] px-6 py-4">
-        <div class="flex items-center gap-4">
-          <i class="uil uil-exclamation-triangle text-[1.45rem] text-[#07182d]" aria-hidden="true"></i>
-          <div>
-            <strong class="block text-[0.9rem] text-[#b00020]">WhatsApp Session Disconnected</strong>
-            <span class="text-[0.86rem] text-[#b00020]">Auto-responses may be offline until this session is restored.</span>
-          </div>
-        </div>
-        <button class="inline-flex min-h-10 items-center gap-2 rounded border-0 bg-[#007653] px-4 text-[0.82rem] font-bold text-white" type="button">
-          Reconnect Now
-        </button>
-      </div>
-    }
+    @if (successMessage) { <div class="mb-5 rounded-md border border-[#b6dfcd] bg-[#effaf4] px-4 py-3 text-sm font-medium text-[#126a49]">{{ successMessage }}</div> }
+    @if (errorMessage) { <div class="mb-5 rounded-md border border-[#ffc9c4] bg-[#fff1f0] px-4 py-3 text-sm font-medium text-[#d71920]">{{ errorMessage }}</div> }
 
-    <nav class="mb-8 flex items-center gap-8 border-b border-[#c6d2ca]">
+    <nav class="mb-6 flex gap-5 overflow-x-auto border-b border-[#c6d2ca]" aria-label="Restaurant configuration sections">
       @for (tab of tabs; track tab) {
-        <button
-          class="border-0 border-b-2 bg-transparent px-0 py-4 text-[0.78rem] font-medium"
-          [style.border-color]="activeTab === tab ? '#007653' : 'transparent'"
-          [style.color]="activeTab === tab ? '#07182d' : '#33405a'"
-          type="button"
-          (click)="activeTab = tab"
-        >
-          {{ tab }}
-        </button>
+        <button class="shrink-0 border-0 border-b-2 bg-transparent px-0 py-3 text-sm font-semibold" [style.border-color]="activeTab === tab ? '#007653' : 'transparent'" [style.color]="activeTab === tab ? '#07182d' : '#48566d'" type="button" (click)="setActiveTab(tab)">{{ tab }}</button>
       }
     </nav>
 
     @if (activeTab === 'Overview') {
-      <section class="grid grid-cols-[minmax(0,2fr)_minmax(18rem,0.95fr)] gap-6">
-        <article class="rounded-lg border border-[#c6d2ca] bg-white p-6">
-          <header class="mb-6 flex items-center justify-between">
-            <h3 class="m-0 text-[1rem] font-semibold text-[#07182d]">Business & Owner Profile</h3>
-            <button class="inline-flex items-center gap-2 border-0 bg-transparent text-[0.82rem] font-bold text-[#07182d]" type="button">
-              <i class="uil uil-pen" aria-hidden="true"></i>
-              Edit Details
-            </button>
-          </header>
-
-          <div class="grid grid-cols-2 gap-x-12 gap-y-7">
-            <div>
-              <p class="m-0 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#46536a]">Legal Entity Name</p>
-              <strong class="mt-2 block text-[0.95rem] font-semibold text-[#07182d]">{{ restaurant.name }}</strong>
-            </div>
-            <div>
-              <p class="m-0 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#46536a]">Owner / Contact Person</p>
-              <strong class="mt-2 block text-[0.95rem] font-semibold text-[#07182d]">{{ restaurant.ownerName || 'Unassigned' }}</strong>
-            </div>
-            <div>
-              <p class="m-0 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#46536a]">Primary Phone</p>
-              <strong class="mt-2 block text-[0.95rem] font-semibold text-[#07182d]">{{ restaurant.ownerPhone }}</strong>
-            </div>
-            <div>
-              <p class="m-0 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#46536a]">WhatsApp Number</p>
-              <strong class="mt-2 block text-[0.95rem] font-semibold text-[#07182d]">{{ restaurant.whatsappNumber }}</strong>
-            </div>
-            <div class="col-span-2">
-              <p class="m-0 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-[#46536a]">Address</p>
-              <strong class="mt-2 block text-[0.95rem] font-semibold text-[#07182d]">{{ restaurant.pickupAddress || 'No pickup address saved' }}</strong>
-            </div>
-          </div>
+      <div class="grid gap-5 lg:grid-cols-2">
+        <article class="rounded-lg border border-[#c6d2ca] bg-white p-5">
+          <h3 class="m-0 text-base font-semibold text-[#07182d]">Account setup</h3>
+          <dl class="mt-4 grid gap-4 text-sm"><div><dt class="text-[#48566d]">Account status</dt><dd class="m-0 mt-1 font-semibold text-[#07182d]">{{ getStatusLabel(restaurant.status) }}</dd></div><div><dt class="text-[#48566d]">WhatsApp configuration</dt><dd class="m-0 mt-1 font-semibold text-[#07182d]">{{ getWhatsAppLabel() }}</dd></div><div><dt class="text-[#48566d]">Authorized managers</dt><dd class="m-0 mt-1 font-semibold text-[#07182d]">{{ restaurant.managerContacts?.length || restaurant.managerPhones.length }}</dd></div></dl>
         </article>
-
-        <aside class="rounded-lg border border-[#c6d2ca] bg-white p-6">
-          <h3 class="m-0 mb-5 text-[1rem] font-semibold text-[#07182d]">Quick Stats</h3>
-          <div class="grid gap-4">
-            <div class="flex justify-between rounded bg-[#eef4ff] px-4 py-3 text-[0.86rem]">
-              <span class="text-[#46536a]">Joined Date</span>
-              <strong>{{ getJoinedDate(restaurant) }}</strong>
-            </div>
-            <div class="flex justify-between rounded bg-[#eef4ff] px-4 py-3 text-[0.86rem]">
-              <span class="text-[#46536a]">Managers</span>
-              <strong>{{ getManagerCount(restaurant) }}</strong>
-            </div>
-            <div class="flex justify-between rounded bg-[#eef4ff] px-4 py-3 text-[0.86rem]">
-              <span class="text-[#46536a]">API Version</span>
-              <strong>v4.2-stable</strong>
-            </div>
-          </div>
-        </aside>
-
-        <article class="rounded-lg border border-[#c6d2ca] bg-white p-6">
-          <h3 class="mb-7 flex items-center gap-3 text-[1rem] font-semibold text-[#07182d]">
-            <span class="grid size-10 place-items-center rounded bg-[#eef4ff] text-[#007653]">
-              <i class="uil uil-robot" aria-hidden="true"></i>
-            </span>
-            AI Assistant Configuration
-          </h3>
-          <div class="grid gap-4 text-[0.86rem]">
-            <div class="flex justify-between">
-              <span>Auto-Response Status</span>
-              <strong>{{ restaurant.followUpEnabled ? 'Enabled' : 'Disabled' }}</strong>
-            </div>
-            <div class="flex justify-between">
-              <span>Assistant Tone</span>
-              <strong>{{ restaurant.assistantTone | titlecase }}</strong>
-            </div>
-            <div class="flex justify-between">
-              <span>Follow-up Delay</span>
-              <strong>{{ restaurant.followUpDelayMinutes }} min</strong>
-            </div>
-          </div>
+        <article class="rounded-lg border border-[#c6d2ca] bg-white p-5">
+          <h3 class="m-0 text-base font-semibold text-[#07182d]">Automation configuration</h3>
+          <dl class="mt-4 grid gap-4 text-sm"><div><dt class="text-[#48566d]">Assistant tone</dt><dd class="m-0 mt-1 font-semibold text-[#07182d]">{{ restaurant.assistantTone | titlecase }}</dd></div><div><dt class="text-[#48566d]">Follow-up reminders</dt><dd class="m-0 mt-1 font-semibold text-[#07182d]">{{ restaurant.followUpEnabled ? 'Enabled' : 'Disabled' }}</dd></div><div><dt class="text-[#48566d]">Order check-ins</dt><dd class="m-0 mt-1 font-semibold text-[#07182d]">{{ restaurant.orderCheckInEnabled ? 'Enabled' : 'Disabled' }}</dd></div></dl>
         </article>
+      </div>
+    }
 
-        <article class="rounded-lg border border-[#c6d2ca] bg-white p-6">
-          <h3 class="mb-7 flex items-center gap-3 text-[1rem] font-semibold text-[#07182d]">
-            <span class="grid size-10 place-items-center rounded bg-[#eef4ff] text-[#007653]">
-              <i class="uil uil-truck" aria-hidden="true"></i>
-            </span>
-            Delivery Logic
-          </h3>
-          <div class="grid gap-4 text-[0.86rem]">
-            <div class="flex justify-between">
-              <span>Delivery Enabled</span>
-              <strong>{{ restaurant.deliveryEnabled ? 'Yes' : 'No' }}</strong>
-            </div>
-            <div>
-              <span class="block text-[#46536a]">Delivery Areas</span>
-              <strong class="mt-2 block">{{ restaurant.deliveryAreas.length ? restaurant.deliveryAreas.join(', ') : 'No delivery areas saved' }}</strong>
-            </div>
-            <div>
-              <span class="block text-[#46536a]">Fee Note</span>
-              <strong class="mt-2 block">{{ restaurant.deliveryFeeNote || 'No fee note saved' }}</strong>
-            </div>
-          </div>
-        </article>
+    @if (activeTab === 'Business') {
+      <section class="rounded-lg border border-[#c6d2ca] bg-white p-5"><div class="mb-5 flex items-center justify-between gap-4"><div><h3 class="m-0 text-base font-semibold text-[#07182d]">Business profile</h3><p class="mt-1 mb-0 text-sm text-[#48566d]">Connection details only—daily restaurant operations stay in the restaurant account.</p></div>@if (editingTab !== 'Business') { <button class="text-sm font-bold text-[#007653]" type="button" (click)="beginEdit('Business')">Edit</button> }</div>
+        <form [formGroup]="businessForm" (ngSubmit)="saveBusiness()" class="grid gap-4 md:grid-cols-2"><label class="grid gap-1 text-sm font-medium text-[#07182d]">Restaurant name<input class="rounded border border-[#c6d2ca] p-2 disabled:bg-[#f7f8fa]" formControlName="name" [readonly]="editingTab !== 'Business'"></label><label class="grid gap-1 text-sm font-medium text-[#07182d]">Owner name <span class="font-normal text-[#48566d]">(optional)</span><input class="rounded border border-[#c6d2ca] p-2 disabled:bg-[#f7f8fa]" formControlName="ownerName" [readonly]="editingTab !== 'Business'"></label><label class="grid gap-1 text-sm font-medium text-[#07182d]">Contact email<input class="rounded border border-[#c6d2ca] p-2" type="email" formControlName="contactEmail" [readonly]="editingTab !== 'Business'"></label><label class="grid gap-1 text-sm font-medium text-[#07182d]">Cuisine<input class="rounded border border-[#c6d2ca] p-2" formControlName="primaryCuisine" [readonly]="editingTab !== 'Business'"></label><label class="grid gap-1 text-sm font-medium text-[#07182d]">Opening hours<input class="rounded border border-[#c6d2ca] p-2" formControlName="openingHours" [readonly]="editingTab !== 'Business'"></label><label class="grid gap-1 text-sm font-medium text-[#07182d]">Timezone<input class="rounded border border-[#c6d2ca] p-2" formControlName="timezone" [readonly]="editingTab !== 'Business'"></label><label class="grid gap-1 text-sm font-medium text-[#07182d] md:col-span-2">Pickup address<input class="rounded border border-[#c6d2ca] p-2" formControlName="pickupAddress" [readonly]="editingTab !== 'Business'"></label>@if (editingTab === 'Business') { <div class="flex gap-3 md:col-span-2"><button class="min-h-10 rounded bg-[#007653] px-4 text-sm font-bold text-white disabled:opacity-60" [disabled]="isSaving" type="submit">Save business</button><button class="min-h-10 rounded border border-[#c6d2ca] bg-white px-4 text-sm font-bold" type="button" (click)="cancelEdit()">Cancel</button></div> }</form>
       </section>
-    } @else {
-      <section class="rounded-lg border border-[#c6d2ca] bg-white p-6 text-[0.86rem] font-medium text-[#48566d]">
-        {{ activeTab }} tools will be connected here.
-      </section>
+    }
+
+    @if (activeTab === 'Authorized Contacts') {
+      <section class="rounded-lg border border-[#c6d2ca] bg-white p-5"><div class="mb-5 flex items-center justify-between"><div><h3 class="m-0 text-base font-semibold text-[#07182d]">Authorized contacts</h3><p class="mt-1 mb-0 text-sm text-[#48566d]">These are the people permitted to manage this restaurant's account.</p></div>@if (editingTab !== 'Authorized Contacts') { <button class="text-sm font-bold text-[#007653]" type="button" (click)="beginEdit('Authorized Contacts')">Edit</button> }</div>
+      <form [formGroup]="contactsForm" (ngSubmit)="saveContacts()" class="grid gap-4 md:grid-cols-2"><label class="grid gap-1 text-sm font-medium">Owner name<input class="rounded border border-[#c6d2ca] p-2" formControlName="ownerName" [readonly]="editingTab !== 'Authorized Contacts'"></label><label class="grid gap-1 text-sm font-medium">Owner phone<input class="rounded border border-[#c6d2ca] p-2" formControlName="ownerPhone" [readonly]="editingTab !== 'Authorized Contacts'"></label><div class="grid gap-3 md:col-span-2" formArrayName="managers"><div class="flex items-center justify-between"><span class="text-sm font-semibold text-[#07182d]">Managers</span>@if (editingTab === 'Authorized Contacts') { <button class="text-sm font-bold text-[#007653]" type="button" (click)="addManager()">Add manager</button> }</div>@for (manager of managers.controls; track $index; let index = $index) { <div class="grid gap-2 sm:grid-cols-[1fr_1fr_auto]" [formGroupName]="index"><input class="rounded border border-[#c6d2ca] p-2" placeholder="Name (optional)" formControlName="name" [readonly]="editingTab !== 'Authorized Contacts'"><input class="rounded border border-[#c6d2ca] p-2" placeholder="Phone number" formControlName="phone" [readonly]="editingTab !== 'Authorized Contacts'">@if (editingTab === 'Authorized Contacts') { <button class="rounded border border-[#ffc9c4] px-3 text-sm font-bold text-[#d71920]" type="button" (click)="removeManager(index)">Remove</button> }</div> }</div>@if (editingTab === 'Authorized Contacts') { <div class="flex gap-3 md:col-span-2"><button class="min-h-10 rounded bg-[#007653] px-4 text-sm font-bold text-white disabled:opacity-60" [disabled]="isSaving" type="submit">Save contacts</button><button class="min-h-10 rounded border border-[#c6d2ca] bg-white px-4 text-sm font-bold" type="button" (click)="cancelEdit()">Cancel</button></div> }</form></section>
+    }
+
+    @if (activeTab === 'WhatsApp') {
+      <section class="rounded-lg border border-[#c6d2ca] bg-white p-5"><div class="mb-5 flex items-center justify-between"><div><h3 class="m-0 text-base font-semibold text-[#07182d]">WhatsApp configuration</h3><p class="mt-1 mb-0 text-sm text-[#48566d]">Session and connection credentials are managed here. An existing token is never displayed.</p></div>@if (editingTab !== 'WhatsApp') { <button class="text-sm font-bold text-[#007653]" type="button" (click)="beginEdit('WhatsApp')">Edit</button> }</div><form [formGroup]="whatsappForm" (ngSubmit)="saveWhatsApp()" class="grid gap-4 md:grid-cols-2"><label class="grid gap-1 text-sm font-medium">Business WhatsApp number<input class="rounded border border-[#c6d2ca] p-2" formControlName="whatsappNumber" [readonly]="editingTab !== 'WhatsApp'"></label><label class="grid gap-1 text-sm font-medium">Session ID<input class="rounded border border-[#c6d2ca] p-2" formControlName="wasenderSessionId" [readonly]="editingTab !== 'WhatsApp'"></label>@if (editingTab === 'WhatsApp') { <label class="grid gap-1 text-sm font-medium md:col-span-2">Replace API token <span class="font-normal text-[#48566d]">(leave blank to keep the current token)</span><input class="rounded border border-[#c6d2ca] p-2" type="password" autocomplete="new-password" formControlName="wasenderApiToken"></label><div class="flex gap-3 md:col-span-2"><button class="min-h-10 rounded bg-[#007653] px-4 text-sm font-bold text-white disabled:opacity-60" [disabled]="isSaving" type="submit">Save WhatsApp</button><button class="min-h-10 rounded border border-[#c6d2ca] bg-white px-4 text-sm font-bold" type="button" (click)="cancelEdit()">Cancel</button></div> }</form></section>
+    }
+
+    @if (activeTab === 'AI & Automations') {
+      <section class="rounded-lg border border-[#c6d2ca] bg-white p-5"><div class="mb-5 flex items-center justify-between"><div><h3 class="m-0 text-base font-semibold text-[#07182d]">AI & automations</h3><p class="mt-1 mb-0 text-sm text-[#48566d]">Configure OrderBridge assistant behaviour and scheduled operational prompts.</p></div>@if (editingTab !== 'AI & Automations') { <button class="text-sm font-bold text-[#007653]" type="button" (click)="beginEdit('AI & Automations')">Edit</button> }</div><form [formGroup]="aiForm" (ngSubmit)="saveAiAutomations()" class="grid gap-5"><div class="grid gap-4 md:grid-cols-2"><label class="grid gap-1 text-sm font-medium">Assistant tone<select class="rounded border border-[#c6d2ca] p-2" formControlName="assistantTone" [disabled]="editingTab !== 'AI & Automations'">@for (tone of assistantToneOptions; track tone.value) { <option [value]="tone.value">{{ tone.label }}</option> }</select></label><label class="grid gap-1 text-sm font-medium">Assistant behaviour summary<input class="rounded border border-[#c6d2ca] p-2" formControlName="assistantPersonalitySummary" [readonly]="editingTab !== 'AI & Automations'"></label></div><label class="flex items-center gap-3 text-sm font-semibold"><input type="checkbox" formControlName="followUpEnabled" [disabled]="editingTab !== 'AI & Automations'"> Enable follow-up reminders</label>@if (aiForm.controls.followUpEnabled.value) { <label class="grid max-w-sm gap-1 text-sm font-medium">Follow-up delay (minutes)<input class="rounded border border-[#c6d2ca] p-2" type="number" formControlName="followUpDelayMinutes" [readonly]="editingTab !== 'AI & Automations'"></label> }<label class="flex items-center gap-3 text-sm font-semibold"><input type="checkbox" formControlName="ownerDailySummaryEnabled" [disabled]="editingTab !== 'AI & Automations'"> Send daily owner summary</label>@if (aiForm.controls.ownerDailySummaryEnabled.value) { <label class="grid max-w-sm gap-1 text-sm font-medium">Daily summary time<input class="rounded border border-[#c6d2ca] p-2" type="time" formControlName="ownerDailySummaryTime" [readonly]="editingTab !== 'AI & Automations'"></label> }<label class="flex items-center gap-3 text-sm font-semibold"><input type="checkbox" formControlName="ownerWeeklySummaryEnabled" [disabled]="editingTab !== 'AI & Automations'"> Send weekly owner summary</label>@if (aiForm.controls.ownerWeeklySummaryEnabled.value) { <div class="grid gap-4 md:grid-cols-2"><label class="grid gap-1 text-sm font-medium">Weekly summary day<select class="rounded border border-[#c6d2ca] p-2" formControlName="ownerWeeklySummaryDay" [disabled]="editingTab !== 'AI & Automations'"><option value="monday">Monday</option><option value="tuesday">Tuesday</option><option value="wednesday">Wednesday</option><option value="thursday">Thursday</option><option value="friday">Friday</option><option value="saturday">Saturday</option><option value="sunday">Sunday</option></select></label><label class="grid gap-1 text-sm font-medium">Weekly summary time<input class="rounded border border-[#c6d2ca] p-2" type="time" formControlName="ownerWeeklySummaryTime" [readonly]="editingTab !== 'AI & Automations'"></label></div> }<label class="flex items-center gap-3 text-sm font-semibold"><input type="checkbox" formControlName="ownerPendingActionReminderEnabled" [disabled]="editingTab !== 'AI & Automations'"> Enable pending-action reminders</label>@if (aiForm.controls.ownerPendingActionReminderEnabled.value) { <label class="grid max-w-sm gap-1 text-sm font-medium">Pending-action delay (minutes)<input class="rounded border border-[#c6d2ca] p-2" type="number" formControlName="ownerPendingActionReminderDelayMinutes" [readonly]="editingTab !== 'AI & Automations'"></label> }<label class="flex items-center gap-3 text-sm font-semibold"><input type="checkbox" formControlName="orderCheckInEnabled" [disabled]="editingTab !== 'AI & Automations'"> Enable order check-ins</label>@if (aiForm.controls.orderCheckInEnabled.value) { <div class="grid gap-4 md:grid-cols-2"><label class="grid gap-1 text-sm font-medium">Pickup check-in delay (minutes)<input class="rounded border border-[#c6d2ca] p-2" type="number" formControlName="pickupCheckInDelayMinutes" [readonly]="editingTab !== 'AI & Automations'"></label><label class="grid gap-1 text-sm font-medium">Delivery check-in delay (minutes)<input class="rounded border border-[#c6d2ca] p-2" type="number" formControlName="deliveryCheckInDelayMinutes" [readonly]="editingTab !== 'AI & Automations'"></label></div> }@if (editingTab === 'AI & Automations') { <div class="flex gap-3"><button class="min-h-10 rounded bg-[#007653] px-4 text-sm font-bold text-white disabled:opacity-60" [disabled]="isSaving" type="submit">Save automations</button><button class="min-h-10 rounded border border-[#c6d2ca] bg-white px-4 text-sm font-bold" type="button" (click)="cancelEdit()">Cancel</button></div> }</form></section>
+    }
+
+    @if (activeTab === 'Subscription') {
+      <section class="rounded-lg border border-[#c6d2ca] bg-white p-5"><h3 class="m-0 text-base font-semibold text-[#07182d]">Subscription</h3><p class="mt-1 mb-5 text-sm text-[#48566d]">Billing is read-only in this workspace.</p><dl class="grid gap-4 sm:grid-cols-3 text-sm"><div><dt class="text-[#48566d]">Monthly amount</dt><dd class="m-0 mt-1 font-semibold text-[#07182d]">{{ restaurant.subscriptionAmount != null ? ('GHS ' + (restaurant.subscriptionAmount | number: '1.2-2': 'en-US')) : 'Not recorded' }}</dd></div><div><dt class="text-[#48566d]">Payment status</dt><dd class="m-0 mt-1 font-semibold text-[#07182d]">{{ (restaurant.billingStatus || 'inactive') | titlecase }}</dd></div><div><dt class="text-[#48566d]">Renewal date</dt><dd class="m-0 mt-1 font-semibold text-[#07182d]">{{ restaurant.subscriptionRenewalDate ? (restaurant.subscriptionRenewalDate | date) : 'Not recorded' }}</dd></div></dl></section>
     }
   }
 </section>
