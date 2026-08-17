@@ -49,33 +49,6 @@ export const routes: Routes = [
             (m) => m.RestaurantDetailsComponent,
           ),
       },
-      {
-        path: 'plans-subscriptions',
-        loadComponent: () =>
-          import('@features/plans-subscriptions/plans-subscriptions.component').then(
-            (m) => m.PlansSubscriptionsComponent,
-          ),
-      },
-      {
-        path: 'whatsapp-sessions',
-        loadComponent: () =>
-          import('@features/whatsapp-sessions/whatsapp-sessions.component').then(
-            (m) => m.WhatsAppSessionsComponent,
-          ),
-      },
-      {
-        path: 'admin-users',
-        loadComponent: () => import('@features/admin-users/admin-users.component').then((m) => m.AdminUsersComponent),
-      },
-      {
-        path: 'audit-activity',
-        loadComponent: () =>
-          import('@features/audit-activity/audit-activity.component').then((m) => m.AuditActivityComponent),
-      },
-      {
-        path: 'settings',
-        loadComponent: () => import('@features/settings/settings.component').then((m) => m.SettingsComponent),
-      },
     ],
   },
   {

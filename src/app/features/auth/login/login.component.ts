@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { FirebaseAuthService } from '@core/auth/firebase-auth.service';
+import { AuthSessionService } from '@core/auth/auth-session.service';
 
 @Component({
   selector: 'app-login',
@@ -21,6 +22,7 @@ export class LoginComponent {
 
   constructor(
     private readonly authService: FirebaseAuthService,
+    private readonly authSession: AuthSessionService,
     private readonly router: Router,
   ) {}
 
@@ -35,6 +37,12 @@ export class LoginComponent {
 
     try {
       await this.authService.loginWithEmail(this.email, this.password, this.rememberDevice);
+      const profile = await this.authSession.loadProfile(true);
+      if (profile?.role !== 'super_admin') {
+        await this.authService.logout();
+        this.errorMessage = 'This account does not have OrderBridge super-admin access.';
+        return;
+      }
       await this.router.navigate(['/dashboard']);
     } catch (error) {
       this.errorMessage = this.getAuthErrorMessage(error);
@@ -54,6 +62,12 @@ export class LoginComponent {
 
     try {
       await this.authService.loginWithGoogle();
+      const profile = await this.authSession.loadProfile(true);
+      if (profile?.role !== 'super_admin') {
+        await this.authService.logout();
+        this.errorMessage = 'This account does not have OrderBridge super-admin access.';
+        return;
+      }
       await this.router.navigate(['/dashboard']);
     } catch (error) {
       this.errorMessage = this.getAuthErrorMessage(error);

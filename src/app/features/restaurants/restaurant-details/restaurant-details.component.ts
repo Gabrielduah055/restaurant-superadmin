@@ -4,10 +4,9 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import {
   RESTAURANT_PAGE_COPY,
-  RESTAURANT_PLAN_OPTIONS,
   RESTAURANT_STATUS_OPTIONS,
 } from '@core/constants/restaurant.constants';
-import { Restaurant, RestaurantPlan, RestaurantStatus } from '@core/models/restaurant.model';
+import { Restaurant, RestaurantStatus } from '@core/models/restaurant.model';
 import { RestaurantService } from '@core/services/restaurant.service';
 
 @Component({
@@ -17,7 +16,6 @@ import { RestaurantService } from '@core/services/restaurant.service';
 })
 export class RestaurantDetailsComponent implements OnInit {
   readonly pageCopy = RESTAURANT_PAGE_COPY;
-  readonly planOptions = RESTAURANT_PLAN_OPTIONS;
   readonly statusOptions = RESTAURANT_STATUS_OPTIONS;
   readonly tabs = ['Overview', 'Subscription', 'Session', 'Settings Summary', 'Access Control'];
 
@@ -54,10 +52,6 @@ export class RestaurantDetailsComponent implements OnInit {
     } finally {
       this.isLoading = false;
     }
-  }
-
-  getPlanLabel(plan: RestaurantPlan): string {
-    return this.planOptions.find((option) => option.value === plan)?.label ?? plan;
   }
 
   getStatusLabel(status: RestaurantStatus): string {

@@ -1,22 +1,11 @@
 <header
-  class="sticky top-0 z-20 flex min-h-16 items-center justify-between gap-4 border-b border-[#c6d2ca] bg-white/95 px-8"
+  class="sticky top-0 z-20 flex min-h-16 items-center justify-between gap-4 border-b border-[#c6d2ca] bg-white/95 px-5 sm:px-8"
   (click)="profileMenuOpen = false"
 >
-  <app-search-input
-    [(value)]="globalSearch"
-    placeholder="Search restaurants, users, or logs..."
-  />
+  <button class="grid size-10 place-items-center rounded border border-[#c6d2ca] text-[#005f43] lg:hidden" type="button" aria-label="Open navigation" (click)="menuRequested.emit()"><i class="uil uil-bars text-xl" aria-hidden="true"></i></button>
+  <p class="mr-auto text-sm font-semibold text-[#07182d]">OrderBridge control centre</p>
 
   <div class="flex items-center gap-4" (click)="$event.stopPropagation()">
-    <button
-      class="relative grid size-9 place-items-center rounded-md border-0 bg-transparent text-[#344157]"
-      type="button"
-      aria-label="Notifications"
-    >
-      <i class="uil uil-bell text-[1.35rem]" aria-hidden="true"></i>
-      <span class="absolute right-2 top-2 size-1.5 rounded-full bg-[#d71920]"></span>
-    </button>
-
     <div class="relative">
       <button
         class="flex items-center gap-2 border-0 bg-transparent text-[0.86rem] font-normal text-[#27344c]"

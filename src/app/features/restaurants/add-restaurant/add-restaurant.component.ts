@@ -5,11 +5,9 @@ import { firstValueFrom } from 'rxjs';
 import {
   ASSISTANT_TONE_OPTIONS,
   RESTAURANT_PAGE_COPY,
-  RESTAURANT_PLAN_CARDS,
-  RESTAURANT_PLAN_OPTIONS,
   RESTAURANT_STATUS_OPTIONS,
 } from '@core/constants/restaurant.constants';
-import { CreateRestaurantRequest, RestaurantManagerContact, RestaurantPlan } from '@core/models/restaurant.model';
+import { CreateRestaurantRequest, RestaurantManagerContact } from '@core/models/restaurant.model';
 import { RestaurantService } from '@core/services/restaurant.service';
 
 @Component({
@@ -23,8 +21,6 @@ export class AddRestaurantComponent {
   private readonly router = inject(Router);
 
   readonly pageCopy = RESTAURANT_PAGE_COPY;
-  readonly planCards = RESTAURANT_PLAN_CARDS;
-  readonly planOptions = RESTAURANT_PLAN_OPTIONS;
   readonly statusOptions = RESTAURANT_STATUS_OPTIONS;
   readonly assistantToneOptions = ASSISTANT_TONE_OPTIONS;
 
@@ -41,7 +37,6 @@ export class AddRestaurantComponent {
     managerPhone1: [''],
     managerName2: [''],
     managerPhone2: [''],
-    plan: ['growth', [Validators.required]],
     status: ['active', [Validators.required]],
     subscriptionRenewalDate: [''],
     wasenderSessionId: ['', [Validators.required]],
@@ -61,13 +56,6 @@ export class AddRestaurantComponent {
     followUpEnabled: [true],
     followUpDelayMinutes: [5, [Validators.required, Validators.min(0)]],
   });
-
-  get selectedPlanLimit(): string {
-    const selectedPlan = this.restaurantForm.controls.plan.value as RestaurantPlan;
-    const limit = this.planCards.find((plan) => plan.value === selectedPlan)?.managerLimit ?? 0;
-
-    return limit >= 999 ? 'Unlimited' : String(limit);
-  }
 
   async saveRestaurant(): Promise<void> {
     if (this.restaurantForm.invalid) {
@@ -98,7 +86,7 @@ export class AddRestaurantComponent {
       name: value.name.trim(),
       ownerPhone: value.ownerPhone.trim(),
       managerPhones: this.toManagerContacts(value).map((manager) => manager.phone),
-      plan: value.plan as CreateRestaurantRequest['plan'],
+      plan: 'starter',
       status: value.status as CreateRestaurantRequest['status'],
       wasenderSessionId: value.wasenderSessionId.trim(),
       whatsappNumber: value.whatsappNumber.trim(),
