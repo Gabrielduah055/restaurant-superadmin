@@ -1,23 +1,31 @@
-import { DatePipe, DecimalPipe, TitleCasePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { BillingStatus, Restaurant } from '@core/models/restaurant.model';
+import { Restaurant } from '@core/models/restaurant.model';
 import { RestaurantService } from '@core/services/restaurant.service';
+import {
+  getBillingStatusLabel,
+  getEffectiveBillingStatus,
+  getSubscriptionRenewalState,
+  hasValidSubscriptionAmount,
+  isActiveRevenueSubscription,
+  SubscriptionDisplayStatus,
+  SubscriptionRenewalState,
+} from '@core/utils/subscription-billing.util';
 
-type RenewalFilter = 'all' | 'renewing_soon' | 'overdue';
-type RenewalState = 'renewing_soon' | 'overdue' | undefined;
+type RenewalFilter = 'all' | Exclude<SubscriptionRenewalState, undefined>;
 
 @Component({
   selector: 'app-subscriptions',
-  imports: [DatePipe, DecimalPipe, FormsModule, RouterLink, TitleCasePipe],
+  imports: [DatePipe, DecimalPipe, FormsModule, RouterLink],
   templateUrl: './subscriptions.component.html',
 })
 export class SubscriptionsComponent implements OnInit {
   restaurants: Restaurant[] = [];
   searchTerm = '';
-  selectedBillingStatus: BillingStatus | 'all' = 'all';
+  selectedBillingStatus: SubscriptionDisplayStatus | 'all' = 'all';
   selectedRenewal: RenewalFilter = 'all';
   isLoading = true;
   errorMessage = '';
@@ -29,18 +37,15 @@ export class SubscriptionsComponent implements OnInit {
   }
 
   get subscriptionRestaurants(): Restaurant[] {
-    return this.restaurants.filter((restaurant) =>
-      restaurant.subscriptionAmount !== undefined
-      || restaurant.billingStatus !== undefined
-      || restaurant.subscriptionRenewalDate !== undefined,
-    );
+    return this.restaurants;
   }
 
   get filteredSubscriptions(): Restaurant[] {
     const search = this.searchTerm.trim().toLowerCase();
     return this.subscriptionRestaurants.filter((restaurant) => {
       const matchesSearch = !search || restaurant.name.toLowerCase().includes(search);
-      const matchesBilling = this.selectedBillingStatus === 'all' || restaurant.billingStatus === this.selectedBillingStatus;
+      const matchesBilling = this.selectedBillingStatus === 'all'
+        || this.getBillingStatus(restaurant) === this.selectedBillingStatus;
       const matchesRenewal = this.selectedRenewal === 'all' || this.getRenewalState(restaurant) === this.selectedRenewal;
       return matchesSearch && matchesBilling && matchesRenewal;
     });
@@ -48,12 +53,18 @@ export class SubscriptionsComponent implements OnInit {
 
   get monthlyRecurringRevenue(): number {
     return this.subscriptionRestaurants
-      .filter((restaurant) => restaurant.billingStatus === 'active' && this.hasSubscriptionAmount(restaurant))
+      .filter((restaurant) => isActiveRevenueSubscription(restaurant))
       .reduce((total, restaurant) => total + restaurant.subscriptionAmount!, 0);
   }
 
-  get activeSubscriptions(): number { return this.subscriptionRestaurants.filter((restaurant) => restaurant.billingStatus === 'active').length; }
-  get pastDueSubscriptions(): number { return this.subscriptionRestaurants.filter((restaurant) => restaurant.billingStatus === 'past_due').length; }
+  get activeSubscriptions(): number {
+    return this.subscriptionRestaurants.filter((restaurant) => this.getBillingStatus(restaurant) === 'active').length;
+  }
+
+  get pastDueSubscriptions(): number {
+    return this.subscriptionRestaurants.filter((restaurant) => this.getBillingStatus(restaurant) === 'past_due').length;
+  }
+
   get renewingSoonSubscriptions(): number { return this.subscriptionRestaurants.filter((restaurant) => this.getRenewalState(restaurant) === 'renewing_soon').length; }
 
   async loadSubscriptions(): Promise<void> {
@@ -68,26 +79,19 @@ export class SubscriptionsComponent implements OnInit {
     }
   }
 
-  getRenewalState(restaurant: Restaurant): RenewalState {
-    if (!restaurant.subscriptionRenewalDate || restaurant.billingStatus === 'cancelled') return undefined;
-    const renewalDate = this.toLocalDate(restaurant.subscriptionRenewalDate);
-    if (!renewalDate) return undefined;
+  getBillingStatus(restaurant: Restaurant): SubscriptionDisplayStatus {
+    return getEffectiveBillingStatus(restaurant);
+  }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const daysUntilRenewal = Math.round((renewalDate.getTime() - today.getTime()) / 86_400_000);
-    if (daysUntilRenewal < 0) return 'overdue';
-    return daysUntilRenewal <= 7 ? 'renewing_soon' : undefined;
+  getBillingLabel(restaurant: Restaurant): string {
+    return getBillingStatusLabel(this.getBillingStatus(restaurant));
+  }
+
+  getRenewalState(restaurant: Restaurant): SubscriptionRenewalState {
+    return getSubscriptionRenewalState(restaurant);
   }
 
   hasSubscriptionAmount(restaurant: Restaurant): boolean {
-    return typeof restaurant.subscriptionAmount === 'number' && Number.isFinite(restaurant.subscriptionAmount);
-  }
-
-  private toLocalDate(value: string): Date | undefined {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return undefined;
-    date.setHours(0, 0, 0, 0);
-    return date;
+    return hasValidSubscriptionAmount(restaurant);
   }
 }

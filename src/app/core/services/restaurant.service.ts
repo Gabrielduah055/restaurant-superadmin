@@ -31,6 +31,13 @@ export class RestaurantService {
     });
   }
 
+  markSubscriptionPaid(restaurantId: string): Observable<Restaurant> {
+    return this.apiService.post<Restaurant, Record<string, never>>(
+      `restaurants/${restaurantId}/subscription/mark-paid`,
+      {},
+    );
+  }
+
   updateRestaurantPlan(restaurantId: string, plan: RestaurantPlan): Observable<Restaurant> {
     return this.apiService.patch<Restaurant, { plan: RestaurantPlan }>(`restaurants/${restaurantId}/plan`, {
       plan,
