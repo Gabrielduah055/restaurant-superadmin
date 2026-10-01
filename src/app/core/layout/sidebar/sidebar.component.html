@@ -6,6 +6,9 @@
 
   <nav class="grid gap-0.5 px-2 py-2" aria-label="Super admin navigation">
     @for (item of navItems; track item.route) {
+      @if (item.label === 'Restaurants') {
+        <p class="mb-1 mt-4 px-4 text-[0.62rem] font-bold uppercase tracking-[0.13em] text-[#48566d]">Businesses</p>
+      }
       <a
         class="flex min-h-12 items-center gap-3 border-l-4 border-transparent px-4 text-[0.95rem] font-normal text-[#40506a] no-underline transition-colors duration-150 hover:bg-emerald-50 hover:text-[#005f43]"
         [routerLink]="item.route"

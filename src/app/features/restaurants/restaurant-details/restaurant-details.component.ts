@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { DatePipe, DecimalPipe, TitleCasePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { FormArray, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormControl, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import {
   ASSISTANT_TONE_OPTIONS,
@@ -9,12 +9,22 @@ import {
 } from '@core/constants/restaurant.constants';
 import {
   AssistantTone,
+  BillingStatus,
   CreateRestaurantRequest,
   Restaurant,
   RestaurantManagerContact,
   RestaurantStatus,
 } from '@core/models/restaurant.model';
 import { RestaurantService } from '@core/services/restaurant.service';
+import {
+  getBillingStatusLabel,
+  getEffectiveBillingStatus,
+  getSubscriptionRenewalState,
+  hasValidSubscriptionAmount,
+  parseSubscriptionCalendarDate,
+  SubscriptionDisplayStatus,
+  SubscriptionRenewalState,
+} from '@core/utils/subscription-billing.util';
 import { StatusBadgeComponent } from '@shared/components/status-badge/status-badge.component';
 
 type RestaurantTab = 'Overview' | 'Business' | 'Authorized Contacts' | 'WhatsApp' | 'AI & Automations' | 'Subscription';
@@ -33,6 +43,8 @@ export class RestaurantDetailsComponent implements OnInit {
   restaurant?: Restaurant;
   activeTab: RestaurantTab = 'Overview';
   editingTab?: Exclude<RestaurantTab, 'Overview' | 'Subscription'>;
+  isEditingBilling = false;
+  isMarkPaidOpen = false;
   isLoading = false;
   isSaving = false;
   wasJustCreated = false;
@@ -78,6 +90,12 @@ export class RestaurantDetailsComponent implements OnInit {
     deliveryCheckInDelayMinutes: [75, [Validators.min(1)]],
   });
 
+  readonly billingForm = this.formBuilder.group({
+    subscriptionAmount: new FormControl<number | null>(null, Validators.min(0.01)),
+    billingStatus: new FormControl<BillingStatus | null>(null),
+    subscriptionRenewalDate: [''],
+  });
+
   constructor(
     private readonly route: ActivatedRoute,
     private readonly restaurantService: RestaurantService,
@@ -85,6 +103,7 @@ export class RestaurantDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     this.wasJustCreated = this.route.snapshot.queryParamMap.get('created') === '1';
+    if (this.route.snapshot.queryParamMap.get('tab') === 'subscription') this.activeTab = 'Subscription';
     void this.loadRestaurant();
   }
 
@@ -115,6 +134,8 @@ export class RestaurantDetailsComponent implements OnInit {
   setActiveTab(tab: RestaurantTab): void {
     this.activeTab = tab;
     this.editingTab = undefined;
+    this.isEditingBilling = false;
+    this.isMarkPaidOpen = false;
     this.clearMessages();
   }
 
@@ -196,6 +217,75 @@ export class RestaurantDetailsComponent implements OnInit {
     });
   }
 
+  beginBillingEdit(): void {
+    this.isEditingBilling = true;
+    this.isMarkPaidOpen = false;
+    this.clearMessages();
+  }
+
+  cancelBillingEdit(): void {
+    if (this.restaurant) this.patchForms(this.restaurant);
+    this.isEditingBilling = false;
+    this.clearMessages();
+  }
+
+  async saveBilling(): Promise<void> {
+    if (!this.restaurant) return;
+    if (this.billingForm.invalid) {
+      this.billingForm.markAllAsTouched();
+      this.errorMessage = 'Review the billing fields before saving.';
+      return;
+    }
+
+    const value = this.billingForm.getRawValue();
+    const payload: Partial<CreateRestaurantRequest> = {};
+    if (value.subscriptionAmount !== null) payload.subscriptionAmount = Number(value.subscriptionAmount);
+    if (value.billingStatus !== null) payload.billingStatus = value.billingStatus;
+    if (value.subscriptionRenewalDate.trim()) payload.subscriptionRenewalDate = value.subscriptionRenewalDate;
+    await this.updateSubscriptionBilling(payload, 'Billing updated successfully.');
+  }
+
+  openMarkPaid(): void {
+    if (!this.restaurant || !this.canMarkAsPaid(this.restaurant)) return;
+    if (!this.hasSubscriptionAmount(this.restaurant)) {
+      this.errorMessage = 'Configure the monthly subscription amount before recording payment.';
+      return;
+    }
+    this.isMarkPaidOpen = true;
+    this.isEditingBilling = false;
+    this.clearMessages();
+  }
+
+  closeMarkPaid(): void {
+    this.isMarkPaidOpen = false;
+    this.clearMessages();
+  }
+
+  async confirmMarkPaid(): Promise<void> {
+    if (!this.restaurant || this.isSaving) return;
+    if (!this.hasSubscriptionAmount(this.restaurant)) {
+      this.errorMessage = 'Configure the monthly subscription amount before recording payment.';
+      return;
+    }
+
+    this.isSaving = true;
+    this.clearMessages();
+    try {
+      this.restaurant = await firstValueFrom(
+        this.restaurantService.markSubscriptionPaid(this.restaurant._id),
+      );
+      this.patchForms(this.restaurant);
+      this.isMarkPaidOpen = false;
+      this.successMessage = `${this.restaurant.name} subscription payment recorded.`;
+    } catch (error) {
+      this.errorMessage = error instanceof Error
+        ? error.message
+        : 'Unable to record this subscription payment.';
+    } finally {
+      this.isSaving = false;
+    }
+  }
+
   async changeStatus(nextStatus: RestaurantStatus): Promise<void> {
     if (!this.restaurant || nextStatus === this.restaurant.status) return;
     if (!window.confirm(`Change ${this.restaurant.name} to ${this.getStatusLabel(nextStatus)}?`)) return;
@@ -225,14 +315,41 @@ export class RestaurantDetailsComponent implements OnInit {
   }
 
   getBillingTone(): 'success' | 'warning' | 'danger' | 'secondary' {
-    if (this.restaurant?.billingStatus === 'active') return 'success';
-    if (this.restaurant?.billingStatus === 'past_due') return 'warning';
-    if (this.restaurant?.billingStatus === 'cancelled') return 'danger';
+    if (!this.restaurant) return 'secondary';
+    const status = this.getBillingStatus(this.restaurant);
+    if (status === 'active') return 'success';
+    if (status === 'past_due') return 'warning';
+    if (status === 'cancelled') return 'danger';
     return 'secondary';
   }
 
   getWhatsAppLabel(): string {
     return this.restaurant?.wasenderSessionId ? 'Configured' : 'Not configured';
+  }
+
+  canMarkAsPaid(restaurant: Restaurant): boolean {
+    const status = this.getBillingStatus(restaurant);
+    return status !== 'active' && status !== 'cancelled';
+  }
+
+  hasSubscriptionAmount(restaurant: Restaurant): boolean {
+    return hasValidSubscriptionAmount(restaurant);
+  }
+
+  getBillingStatus(restaurant: Restaurant): SubscriptionDisplayStatus {
+    return getEffectiveBillingStatus(restaurant);
+  }
+
+  getBillingLabel(restaurant: Restaurant): string {
+    return getBillingStatusLabel(this.getBillingStatus(restaurant));
+  }
+
+  getRenewalState(restaurant: Restaurant): SubscriptionRenewalState {
+    return getSubscriptionRenewalState(restaurant);
+  }
+
+  isSubscriptionOverdue(restaurant: Restaurant): boolean {
+    return this.getRenewalState(restaurant) === 'payment_due';
   }
 
   private createManagerControl(contact: RestaurantManagerContact) {
@@ -276,6 +393,41 @@ export class RestaurantDetailsComponent implements OnInit {
       pickupCheckInDelayMinutes: restaurant.pickupCheckInDelayMinutes ?? 45,
       deliveryCheckInDelayMinutes: restaurant.deliveryCheckInDelayMinutes ?? 75,
     });
+    this.billingForm.patchValue({
+      subscriptionAmount: restaurant.subscriptionAmount ?? null,
+      billingStatus: restaurant.billingStatus ?? null,
+      subscriptionRenewalDate: this.toDateInputValue(restaurant.subscriptionRenewalDate),
+    });
+  }
+
+  /**
+   * Administrative billing overrides and future verified payment events update the same restaurant subscription state.
+   * Provider-specific payment processing belongs outside the Super Admin UI.
+   */
+  private async updateSubscriptionBilling(payload: Partial<CreateRestaurantRequest>, successMessage: string): Promise<void> {
+    if (!this.restaurant || this.isSaving) return;
+    this.isSaving = true;
+    this.clearMessages();
+    try {
+      this.restaurant = await firstValueFrom(this.restaurantService.updateRestaurant(this.restaurant._id, payload));
+      this.patchForms(this.restaurant);
+      this.isEditingBilling = false;
+      this.isMarkPaidOpen = false;
+      this.successMessage = `${this.restaurant.name} ${successMessage.toLowerCase()}`;
+    } catch (error) {
+      this.errorMessage = error instanceof Error ? error.message : 'Unable to update billing. Your changes are still in the form.';
+    } finally {
+      this.isSaving = false;
+    }
+  }
+
+  private toDateInputValue(value?: string): string {
+    const date = parseSubscriptionCalendarDate(value);
+    if (!date) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   private async saveConfiguration(tab: Exclude<RestaurantTab, 'Overview' | 'Subscription'>, payload: Partial<CreateRestaurantRequest>): Promise<void> {

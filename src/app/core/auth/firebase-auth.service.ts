@@ -4,7 +4,6 @@ import {
   browserSessionPersistence,
   getAuth,
   GoogleAuthProvider,
-  onAuthStateChanged,
   sendPasswordResetEmail,
   setPersistence,
   signInWithEmailAndPassword,
@@ -22,7 +21,6 @@ export interface ProfileAvatar { photoUrl: string; initials: string; displayName
 })
 export class FirebaseAuthService {
   private readonly auth = getAuth(firebaseApp);
-  private authReady: Promise<User | null> | null = null;
 
   async loginWithEmail(email: string, password: string, rememberDevice: boolean): Promise<string> {
     await setPersistence(
@@ -49,18 +47,8 @@ export class FirebaseAuthService {
   }
 
   async getCurrentUser(): Promise<User | null> {
-    if (this.auth.currentUser) {
-      return this.auth.currentUser;
-    }
-
-    this.authReady ??= new Promise((resolve) => {
-      const unsubscribe = onAuthStateChanged(this.auth, (user) => {
-        unsubscribe();
-        resolve(user);
-      });
-    });
-
-    return this.authReady;
+    await this.auth.authStateReady();
+    return this.auth.currentUser;
   }
 
   async getIdToken(): Promise<string | null> {

@@ -13,7 +13,7 @@ import { AuthSessionService } from '@core/auth/auth-session.service';
 export class LoginComponent {
   email = '';
   password = '';
-  rememberDevice = true;
+  rememberDevice = false;
   showPassword = false;
   isLoading = false;
   isResetting = false;
@@ -38,7 +38,14 @@ export class LoginComponent {
     try {
       await this.authService.loginWithEmail(this.email, this.password, this.rememberDevice);
       const profile = await this.authSession.loadProfile(true);
-      if (profile?.role !== 'super_admin') {
+      if (!profile) {
+        const profileError = this.authSession.profileError();
+        await this.authService.logout();
+        this.authSession.clear();
+        this.errorMessage = profileError || 'This account does not have an active OrderBridge admin profile.';
+        return;
+      }
+      if (profile.role !== 'super_admin') {
         await this.authService.logout();
         this.authSession.clear();
         this.errorMessage = 'This account does not have OrderBridge super-admin access.';
@@ -64,7 +71,14 @@ export class LoginComponent {
     try {
       await this.authService.loginWithGoogle();
       const profile = await this.authSession.loadProfile(true);
-      if (profile?.role !== 'super_admin') {
+      if (!profile) {
+        const profileError = this.authSession.profileError();
+        await this.authService.logout();
+        this.authSession.clear();
+        this.errorMessage = profileError || 'This account does not have an active OrderBridge admin profile.';
+        return;
+      }
+      if (profile.role !== 'super_admin') {
         await this.authService.logout();
         this.authSession.clear();
         this.errorMessage = 'This account does not have OrderBridge super-admin access.';
@@ -120,6 +134,18 @@ export class LoginComponent {
 
     if (message.includes('auth/popup-closed-by-user')) {
       return 'Google sign-in was closed before it finished.';
+    }
+
+    if (message.includes('auth/popup-blocked')) {
+      return 'Your browser blocked the Google sign-in window. Allow pop-ups for this site and try again.';
+    }
+
+    if (message.includes('auth/unauthorized-domain')) {
+      return 'Google sign-in is not enabled for this website domain. Add the current domain to Firebase Authentication authorized domains.';
+    }
+
+    if (message.includes('auth/network-request-failed')) {
+      return 'The authentication service could not be reached. Check your connection and try again.';
     }
 
     return 'Authentication failed. Please try again.';

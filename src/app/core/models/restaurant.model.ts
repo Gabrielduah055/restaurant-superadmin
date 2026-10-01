@@ -20,6 +20,7 @@ export interface Restaurant {
   plan: RestaurantPlan;
   status: RestaurantStatus;
   subscriptionRenewalDate?: string;
+  subscriptionLastPaidAt?: string;
   subscriptionAmount?: number;
   billingStatus?: BillingStatus;
   wasenderSessionId: string;
