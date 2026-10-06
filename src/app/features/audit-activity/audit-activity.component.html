@@ -1,4 +1,17 @@
-<section class="px-8 py-10">
-  <h2 class="m-0 text-[1.75rem] font-semibold text-[#07182d]">Audit Activity</h2>
-  <p class="mt-2 text-[#48566d]">System and admin activity logs will live here.</p>
+<section class="mx-auto max-w-7xl px-5 py-6 sm:px-8">
+  <div class="mb-8 flex flex-wrap items-end justify-between gap-4"><app-page-header title="Audit Logs" subtitle="Server-recorded successful super-admin mutations with allowlisted metadata." /><button class="min-h-10 rounded border border-[#007653] px-4 text-sm font-semibold text-[#007653]" type="button" (click)="load()">Refresh</button></div>
+  @if (isLoading) {
+    <div class="rounded-lg border border-[#c6d2ca] bg-white p-6 text-sm text-[#48566d]">Loading audit records…</div>
+  } @else if (errorMessage && !items.length) {
+    <div class="rounded-lg border border-[#ffc9c4] bg-[#fff1f0] p-6 text-sm text-[#b00020]"><p>{{ errorMessage }}</p><button class="mt-3 rounded border border-[#b00020] px-3 py-2 font-semibold" type="button" (click)="load()">Retry</button></div>
+  } @else if (data) {
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2 text-xs text-[#48566d]"><span>Snapshot generated {{ data.generatedAt | date:'medium' }}</span><span>Retention: {{ data.retentionDays }} days</span></div>
+    @if (!items.length) {
+      <div class="rounded-lg border border-dashed border-[#c6d2ca] bg-white p-10 text-center"><h2 class="text-lg font-semibold">No audit records</h2><p class="mt-2 text-sm text-[#48566d]">No recorded administrative mutations are available yet.</p></div>
+    } @else {
+      @if (errorMessage) { <div class="mb-4 rounded border border-[#ffc9c4] bg-[#fff1f0] p-3 text-sm text-[#b00020]">{{ errorMessage }}</div> }
+      <section class="overflow-hidden rounded-lg border border-[#c6d2ca] bg-white"><div class="overflow-x-auto"><div class="grid min-w-[72rem] grid-cols-[0.9fr_1.2fr_1fr_1.1fr_1.2fr] gap-4 bg-[#f5f7ff] px-5 py-3 text-xs font-bold uppercase tracking-wide text-[#48566d]"><span>Occurred</span><span>Actor</span><span>Action</span><span>Target</span><span>Safe changes</span></div>@for (entry of items; track entry.id) { <div class="grid min-w-[72rem] grid-cols-[0.9fr_1.2fr_1fr_1.1fr_1.2fr] items-start gap-4 border-t border-[#e1e6ed] px-5 py-4 text-sm"><span class="text-[#48566d]">{{ entry.occurredAt ? (entry.occurredAt | date:'medium') : 'Unknown' }}</span><div><strong class="block">{{ entry.actor.email }}</strong><small class="text-[#48566d]">Authenticated super admin</small></div><strong>{{ humanize(entry.action) }}</strong><div><span class="block">{{ humanize(entry.target.type) }}</span><small class="break-all text-[#48566d]">{{ entry.target.id }}</small></div><div><span>{{ entry.changedFields.length ? entry.changedFields.join(', ') : 'No fields listed' }}</span>@if (entry.metadata) { <div class="mt-2 flex flex-wrap gap-1">@for (metadata of entry.metadata | keyvalue; track metadata.key) { <span class="rounded bg-[#f5f7ff] px-2 py-1 text-xs text-[#48566d]">{{ humanize(metadata.key) }}: {{ metadata.value }}</span> }</div> }</div></div> }</div></section>
+      @if (data.nextCursor) { <div class="mt-5 text-center"><button class="rounded border border-[#007653] px-4 py-2 text-sm font-semibold text-[#007653] disabled:opacity-60" type="button" [disabled]="isLoadingMore" (click)="loadMore()">{{ isLoadingMore ? 'Loading…' : 'Load more' }}</button></div> }
+    }
+  }
 </section>

@@ -56,6 +56,34 @@ export const routes: Routes = [
             (m) => m.SubscriptionsComponent,
           ),
       },
+      {
+        path: 'whatsapp-operations',
+        loadComponent: () =>
+          import('@features/whatsapp-sessions/whatsapp-sessions.component').then(
+            (m) => m.WhatsAppSessionsComponent,
+          ),
+      },
+      {
+        path: 'agent-operations',
+        loadComponent: () =>
+          import('@features/agent-operations/agent-operations.component').then(
+            (m) => m.AgentOperationsComponent,
+          ),
+      },
+      {
+        path: 'system-health',
+        loadComponent: () =>
+          import('@features/system-health/system-health.component').then(
+            (m) => m.SystemHealthComponent,
+          ),
+      },
+      {
+        path: 'audit-logs',
+        loadComponent: () =>
+          import('@features/audit-activity/audit-activity.component').then(
+            (m) => m.AuditActivityComponent,
+          ),
+      },
     ],
   },
   {
