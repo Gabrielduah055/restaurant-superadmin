@@ -1,0 +1,55 @@
+<section class="mx-auto max-w-6xl px-5 py-6 sm:px-8">
+  <a routerLink="/dashboard/businesses" class="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-[#007653] no-underline"><i class="uil uil-arrow-left"></i> Businesses</a>
+  @if (isLoading) {
+    <div class="rounded border border-[#c6d2ca] bg-white p-6 text-sm text-[#48566d]">Loading business…</div>
+  } @else if (errorMessage) {
+    <div class="rounded border border-[#ffc9c4] bg-[#fff1f0] p-6 text-sm text-[#b00020]">{{ errorMessage }}</div>
+  } @else {
+    @if (business; as current) {
+    <header class="mb-6 flex flex-wrap items-start justify-between gap-4">
+      <div><p class="m-0 text-xs font-bold uppercase tracking-[0.14em] text-[#007653]">{{ current.type }}</p><h1 class="mb-0 mt-2 text-2xl font-bold">{{ current.name }}</h1><p class="mb-0 mt-2 text-sm text-[#48566d]">{{ current.slug }} · Created {{ current.createdAt ? (current.createdAt | date:'medium') : 'date unavailable' }}</p></div>
+      <span class="rounded-full bg-[#e6f7ed] px-3 py-1 text-xs font-bold capitalize text-[#126a49]">{{ current.status }}</span>
+    </header>
+
+    <div class="grid gap-5 lg:grid-cols-2">
+      <article class="rounded-lg border border-[#c6d2ca] bg-white p-5">
+        <h2 class="m-0 text-base font-semibold">Business details</h2>
+        <dl class="mt-5 grid gap-4 text-sm sm:grid-cols-2">
+          <div><dt class="text-[#48566d]">Business ID</dt><dd class="m-0 mt-1 break-all font-mono text-xs font-semibold">{{ current._id }}</dd></div>
+          <div><dt class="text-[#48566d]">Timezone</dt><dd class="m-0 mt-1 font-semibold">{{ current.timezone }}</dd></div>
+          <div><dt class="text-[#48566d]">Owner</dt><dd class="m-0 mt-1 font-semibold">{{ current.ownerName || 'Not recorded' }}</dd></div>
+          <div><dt class="text-[#48566d]">Owner email</dt><dd class="m-0 mt-1 font-semibold">{{ current.ownerEmail || 'Not recorded' }}</dd></div>
+          <div class="sm:col-span-2"><dt class="text-[#48566d]">Agent guidance</dt><dd class="m-0 mt-1 whitespace-pre-line font-semibold">{{ current.agentInstructions || 'No additional guidance' }}</dd></div>
+        </dl>
+      </article>
+
+      <article class="rounded-lg border border-[#c6d2ca] bg-white p-5">
+        <h2 class="m-0 text-base font-semibold">Website access</h2>
+        <dl class="mt-5 grid gap-4 text-sm">
+          <div><dt class="text-[#48566d]">Channel</dt><dd class="m-0 mt-1 font-semibold">{{ current.enabledChannels.join(', ') || 'None' }}</dd></div>
+          <div><dt class="text-[#48566d]">Read-only capabilities</dt><dd class="m-0 mt-1 font-semibold">{{ current.capabilities.join(', ') || 'None' }}</dd></div>
+          <div><dt class="text-[#48566d]">Website integration</dt><dd class="m-0 mt-1 font-semibold">{{ current.websiteIntegration?.enabled ? 'Enabled' : 'Disabled' }}</dd></div>
+          <div><dt class="text-[#48566d]">Allowed origins</dt><dd class="m-0 mt-1 font-semibold">{{ current.websiteIntegration?.allowedOrigins?.join(', ') || 'Any request without an Origin header' }}</dd></div>
+          <div><dt class="text-[#48566d]">Rate limit</dt><dd class="m-0 mt-1 font-semibold">{{ current.websiteIntegration?.requestsPerMinute || 'Not configured' }} requests/minute</dd></div>
+        </dl>
+      </article>
+
+      @if (current.commerceIntegration; as commerce) {
+        <article class="rounded-lg border border-[#c6d2ca] bg-white p-5 lg:col-span-2">
+          <h2 class="m-0 text-base font-semibold">Commerce integration</h2>
+          <p class="mb-0 mt-1 text-sm text-[#48566d]">Credentials are intentionally never returned by the API.</p>
+          <dl class="mt-5 grid gap-4 text-sm md:grid-cols-2">
+            <div><dt class="text-[#48566d]">Backend URL</dt><dd class="m-0 mt-1 break-all font-semibold">{{ commerce.baseUrl }}</dd></div>
+            <div><dt class="text-[#48566d]">Authentication</dt><dd class="m-0 mt-1 font-semibold">{{ commerce.authType | titlecase }}{{ commerce.authType === 'header' ? ' · ' + commerce.apiKeyHeader : '' }}</dd></div>
+            <div><dt class="text-[#48566d]">Search</dt><dd class="m-0 mt-1 font-mono text-xs font-semibold">{{ commerce.paths.search }}</dd></div>
+            <div><dt class="text-[#48566d]">Product</dt><dd class="m-0 mt-1 font-mono text-xs font-semibold">{{ commerce.paths.product }}</dd></div>
+            <div><dt class="text-[#48566d]">Availability</dt><dd class="m-0 mt-1 font-mono text-xs font-semibold">{{ commerce.paths.availability }}</dd></div>
+            <div><dt class="text-[#48566d]">Policies</dt><dd class="m-0 mt-1 font-mono text-xs font-semibold">{{ commerce.paths.policies }}</dd></div>
+            <div class="md:col-span-2"><dt class="text-[#48566d]">Approved product hostnames</dt><dd class="m-0 mt-1 font-semibold">{{ commerce.canonicalProductHosts.join(', ') }}</dd></div>
+          </dl>
+        </article>
+      }
+    </div>
+    }
+  }
+</section>

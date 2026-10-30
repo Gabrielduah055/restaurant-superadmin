@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from '@core/auth/auth.guard';
 import { roleGuard } from '@core/auth/role.guard';
+import { pendingBusinessCreationGuard } from '@features/businesses/add-business/pending-business-creation.guard';
 
 
 export const routes: Routes = [
@@ -27,6 +28,28 @@ export const routes: Routes = [
       {
         path: '',
         loadComponent: () => import('@features/overview/overview.component').then((m) => m.OverviewComponent),
+      },
+      {
+        path: 'businesses',
+        loadComponent: () =>
+          import('@features/businesses/business-list/business-list.component').then(
+            (m) => m.BusinessListComponent,
+          ),
+      },
+      {
+        path: 'businesses/new',
+        canDeactivate: [pendingBusinessCreationGuard],
+        loadComponent: () =>
+          import('@features/businesses/add-business/add-business.component').then(
+            (m) => m.AddBusinessComponent,
+          ),
+      },
+      {
+        path: 'businesses/:businessId',
+        loadComponent: () =>
+          import('@features/businesses/business-details/business-details.component').then(
+            (m) => m.BusinessDetailsComponent,
+          ),
       },
       {
         path: 'restaurants',

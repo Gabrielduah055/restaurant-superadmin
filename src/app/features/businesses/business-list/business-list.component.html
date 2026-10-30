@@ -1,0 +1,43 @@
+<section class="mx-auto max-w-7xl px-5 py-6 sm:px-8">
+  <div class="mb-7 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="m-0 text-2xl font-bold">Businesses</h1>
+      <p class="mb-0 mt-2 text-sm text-[#48566d]">E-commerce clients connected to OrderBridge website chat.</p>
+    </div>
+    <a routerLink="/dashboard/businesses/new" class="rounded bg-[#007653] px-4 py-2 text-sm font-semibold text-white no-underline">Add business</a>
+  </div>
+
+  <div class="mb-6 grid gap-3 rounded-lg border border-[#c6d2ca] bg-white p-4 md:grid-cols-[minmax(0,1fr)_14rem]">
+    <input class="min-h-10 rounded border border-[#c6d2ca] px-3 text-sm" [(ngModel)]="searchTerm" placeholder="Search business, slug, or owner" />
+    <select class="min-h-10 rounded border border-[#c6d2ca] px-3 text-sm" [(ngModel)]="selectedStatus">
+      <option value="all">All account statuses</option>
+      <option value="trial">Trial</option>
+      <option value="active">Active</option>
+      <option value="paused">Paused</option>
+      <option value="cancelled">Cancelled</option>
+    </select>
+  </div>
+
+  @if (isLoading) {
+    <div class="rounded border border-[#c6d2ca] bg-white p-6 text-sm text-[#48566d]">Loading businesses…</div>
+  } @else if (errorMessage) {
+    <div class="rounded border border-[#ffc9c4] bg-[#fff1f0] p-6 text-sm text-[#b00020]">{{ errorMessage }}</div>
+  } @else if (!filteredBusinesses.length) {
+    <div class="rounded border border-dashed border-[#c6d2ca] bg-white p-8 text-sm text-[#48566d]">No business accounts match this view.</div>
+  } @else {
+    <div class="overflow-x-auto rounded-lg border border-[#c6d2ca] bg-white">
+      <div class="grid min-w-[52rem] grid-cols-[1.25fr_0.8fr_0.7fr_0.9fr_auto] gap-4 bg-[#f5f7ff] px-5 py-3 text-xs font-bold uppercase tracking-wide text-[#48566d]">
+        <span>Business</span><span>Type</span><span>Status</span><span>Website / updated</span><span></span>
+      </div>
+      @for (business of filteredBusinesses; track business._id) {
+        <a [routerLink]="['/dashboard/businesses', business._id]" class="grid min-w-[52rem] grid-cols-[1.25fr_0.8fr_0.7fr_0.9fr_auto] items-center gap-4 border-t border-[#e1e6ed] px-5 py-4 text-inherit no-underline hover:bg-[#f8fbff]">
+          <span><strong class="block">{{ business.name }}</strong><small class="text-[#48566d]">{{ business.slug }}</small></span>
+          <span class="text-sm capitalize">{{ business.type }}</span>
+          <span class="text-sm capitalize">{{ business.status }}</span>
+          <span class="text-sm"><span class="block">{{ business.websiteIntegration?.enabled ? 'Enabled' : 'Disabled' }}</span><small class="text-[#48566d]">{{ business.updatedAt ? (business.updatedAt | date:'mediumDate') : 'Unknown' }}</small></span>
+          <i class="uil uil-arrow-right text-[#007653]" aria-hidden="true"></i>
+        </a>
+      }
+    </div>
+  }
+</section>

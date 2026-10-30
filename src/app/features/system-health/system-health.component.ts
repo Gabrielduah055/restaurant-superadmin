@@ -1,5 +1,6 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { SystemHealth } from '@core/models/operations.model';
 import { OperationsService } from '@core/services/operations.service';
@@ -27,7 +28,7 @@ export class SystemHealthComponent implements OnInit {
     try {
       this.data = await firstValueFrom(this.operationsService.getSystemHealth());
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : 'Unable to load system health.';
+      this.errorMessage = this.getErrorMessage(error);
     } finally {
       this.isLoading = false;
     }
@@ -36,4 +37,18 @@ export class SystemHealthComponent implements OnInit {
   readonly label = observationLabel;
   readonly humanize = humanizeOperationalValue;
   readonly tone = operationalTone;
+
+  private getErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      const backendMessage = error.error?.message;
+      if (typeof backendMessage === 'string' && backendMessage.trim()) {
+        return backendMessage;
+      }
+      if (error.status === 503) {
+        return 'System health is temporarily unavailable. Please retry.';
+      }
+    }
+
+    return error instanceof Error ? error.message : 'Unable to load system health.';
+  }
 }

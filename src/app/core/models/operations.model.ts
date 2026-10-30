@@ -10,7 +10,13 @@ export interface DateWindow {
 export interface WhatsAppOperations {
   generatedAt: string;
   window: DateWindow;
-  sample: { limit: number; truncated: boolean };
+  sample: {
+    limit: number;
+    truncated: boolean;
+    inboundTruncated: boolean;
+    outboundTruncated: boolean;
+    countsRepresent: 'records_with_activity_in_window';
+  };
   summary: {
     total: number;
     configured: number;
@@ -124,15 +130,24 @@ export interface SystemHealth {
     observedAt: string | null;
     latencyMs: number | null;
     readyState: number;
+    failureCode: string | null;
   };
   queue: {
     runtime: RuntimeHealthObservation | null;
     backlog: {
-      observedAt: string;
-      pending: number;
-      due: number;
-      sending: number;
-      failedLast24h: number;
+      status: 'available' | 'unavailable';
+      reason:
+        | 'mongodb_disconnected'
+        | 'mongodb_ping_failed'
+        | 'mongodb_ping_timeout'
+        | 'query_failed'
+        | 'query_timeout'
+        | null;
+      observedAt: string | null;
+      pending: number | null;
+      due: number | null;
+      sending: number | null;
+      failedLast24h: number | null;
       oldestPendingAt: string | null;
       lastAttemptAt: string | null;
     };
@@ -141,6 +156,9 @@ export interface SystemHealth {
   auditPersistence: {
     runtime: RuntimeHealthObservation | null;
     queuedEntries: number;
+    inFlightEntries: number;
+    unresolvedEntries: number;
+    retryPassRunning: boolean;
   };
 }
 
