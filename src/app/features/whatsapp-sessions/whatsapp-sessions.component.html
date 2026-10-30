@@ -1,4 +1,45 @@
-<section class="px-8 py-10">
-  <h2 class="m-0 text-[1.75rem] font-semibold text-[#07182d]">WhatsApp Sessions</h2>
-  <p class="mt-2 text-[#48566d]">Session health and reconnection workflows will live here.</p>
+<section class="mx-auto max-w-7xl px-5 py-6 sm:px-8">
+  <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
+    <app-page-header title="WhatsApp Operations" subtitle="Configuration and observed delivery activity. A saved session is not proof of a live connection." />
+    <label class="grid gap-1 text-xs font-semibold uppercase tracking-wide text-[#48566d]">
+      Observation window
+      <select class="min-h-10 rounded border border-[#c6d2ca] bg-white px-3 text-sm normal-case text-[#07182d]" [value]="window" (change)="setWindow($any($event.target).value)">
+        @for (option of windows; track option) { <option [value]="option">{{ option }}</option> }
+      </select>
+    </label>
+  </div>
+  @if (isLoading) {
+    <div class="rounded-lg border border-[#c6d2ca] bg-white p-6 text-sm text-[#48566d]">Loading WhatsApp observations…</div>
+  } @else if (errorMessage) {
+    <div class="rounded-lg border border-[#ffc9c4] bg-[#fff1f0] p-6 text-sm text-[#b00020]"><p>{{ errorMessage }}</p><button class="mt-3 rounded border border-[#b00020] px-3 py-2 font-semibold" type="button" (click)="load()">Retry</button></div>
+  } @else if (data) {
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2 text-xs text-[#48566d]">
+      <span>Snapshot generated {{ data.generatedAt | date:'medium' }}</span>
+      @if (data.sample.truncated) { <span class="font-semibold text-[#8a5a00]">Results limited to {{ data.sample.limit }} observations</span> }
+    </div>
+    <div class="grid gap-4 sm:grid-cols-3">
+      <article class="rounded-lg border border-[#c6d2ca] bg-white p-5"><p class="text-sm text-[#48566d]">Restaurants</p><strong class="mt-2 block text-3xl">{{ data.summary.total }}</strong></article>
+      <article class="rounded-lg border border-[#c6d2ca] bg-white p-5"><p class="text-sm text-[#48566d]">Configured</p><strong class="mt-2 block text-3xl">{{ data.summary.configured }}</strong><small class="mt-2 block text-[#48566d]">Session ID saved only</small></article>
+      <article class="rounded-lg border border-[#c6d2ca] bg-white p-5"><p class="text-sm text-[#48566d]">Connection health monitored</p><strong class="mt-2 block text-3xl">{{ data.summary.providerConnectionMonitored }}</strong><small class="mt-2 block text-[#48566d]">Unknown unless directly observed</small></article>
+    </div>
+    @if (!data.sessions.length) {
+      <div class="mt-8 rounded-lg border border-dashed border-[#c6d2ca] bg-white p-10 text-center"><h2 class="text-lg font-semibold">No WhatsApp configurations</h2><p class="mt-2 text-sm text-[#48566d]">No restaurants are available in this result page.</p></div>
+    } @else {
+      <section class="mt-8 overflow-hidden rounded-lg border border-[#c6d2ca] bg-white">
+        <header class="border-b border-[#c6d2ca] px-6 py-5"><h2 class="text-lg font-semibold">Restaurant sessions</h2></header>
+        <div class="overflow-x-auto">
+          <div class="grid min-w-[72rem] grid-cols-[1.3fr_0.85fr_0.9fr_1fr_1fr] gap-4 bg-[#f5f7ff] px-6 py-3 text-xs font-bold uppercase tracking-wide text-[#48566d]"><span>Restaurant</span><span>Configuration</span><span>Connection</span><span>Inbound</span><span>Outbound</span></div>
+          @for (session of data.sessions; track session.restaurantId) {
+            <div class="grid min-w-[72rem] grid-cols-[1.3fr_0.85fr_0.9fr_1fr_1fr] items-start gap-4 border-t border-[#e1e6ed] px-6 py-4 text-sm">
+              <div><strong class="block">{{ session.restaurantName }}</strong><small class="mt-1 block text-[#48566d]">{{ session.configuration.sessionReference || 'No session reference' }}</small></div>
+              <div class="grid gap-1"><app-status-badge [label]="humanize(session.configuration.status)" [tone]="session.configuration.status === 'configured' ? 'success' : 'neutral'" /><small class="text-[#48566d]">API token {{ session.configuration.apiTokenConfigured ? 'configured' : 'not configured' }}</small></div>
+              <div class="grid gap-1"><app-status-badge label="Not monitored" tone="neutral" /><small class="text-[#48566d]">Observed: Unknown</small></div>
+              <div class="grid gap-1"><app-status-badge [label]="label(session.inbound.status, session.inbound.freshness)" [tone]="tone(session.inbound.status, session.inbound.freshness)" /><small class="text-[#48566d]">{{ session.inbound.processed || 0 }} processed · {{ session.inbound.failed }} failed</small><small class="text-[#48566d]">Observed {{ session.inbound.observedAt ? (session.inbound.observedAt | date:'short') : 'Unknown' }}</small></div>
+              <div class="grid gap-1"><app-status-badge [label]="label(session.outbound.status, session.outbound.freshness)" [tone]="tone(session.outbound.status, session.outbound.freshness)" /><small class="text-[#48566d]">{{ session.outbound.sent }} sent · {{ session.outbound.pending }} pending · {{ session.outbound.failed }} failed</small><small class="text-[#48566d]">Observed {{ session.outbound.observedAt ? (session.outbound.observedAt | date:'short') : 'Unknown' }}</small></div>
+            </div>
+          }
+        </div>
+      </section>
+    }
+  }
 </section>
