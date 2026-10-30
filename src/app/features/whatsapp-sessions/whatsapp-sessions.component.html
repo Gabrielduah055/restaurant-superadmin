@@ -15,7 +15,8 @@
   } @else if (data) {
     <div class="mb-4 flex flex-wrap items-center justify-between gap-2 text-xs text-[#48566d]">
       <span>Snapshot generated {{ data.generatedAt | date:'medium' }}</span>
-      @if (data.sample.truncated) { <span class="font-semibold text-[#8a5a00]">Results limited to {{ data.sample.limit }} observations</span> }
+      <span>Each count represents one record with receive/process/send/attempt activity inside the selected window.</span>
+      @if (data.sample.truncated) { <span class="font-semibold text-[#8a5a00]">Results limited to {{ data.sample.limit }} records per direction@if (data.sample.inboundTruncated && !data.sample.outboundTruncated) { (inbound) } @else if (data.sample.outboundTruncated && !data.sample.inboundTruncated) { (outbound) }</span> }
     </div>
     <div class="grid gap-4 sm:grid-cols-3">
       <article class="rounded-lg border border-[#c6d2ca] bg-white p-5"><p class="text-sm text-[#48566d]">Restaurants</p><strong class="mt-2 block text-3xl">{{ data.summary.total }}</strong></article>

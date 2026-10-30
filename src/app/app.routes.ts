@@ -29,6 +29,27 @@ export const routes: Routes = [
         loadComponent: () => import('@features/overview/overview.component').then((m) => m.OverviewComponent),
       },
       {
+        path: 'businesses',
+        loadComponent: () =>
+          import('@features/businesses/business-list/business-list.component').then(
+            (m) => m.BusinessListComponent,
+          ),
+      },
+      {
+        path: 'businesses/new',
+        loadComponent: () =>
+          import('@features/businesses/add-business/add-business.component').then(
+            (m) => m.AddBusinessComponent,
+          ),
+      },
+      {
+        path: 'businesses/:businessId',
+        loadComponent: () =>
+          import('@features/businesses/business-details/business-details.component').then(
+            (m) => m.BusinessDetailsComponent,
+          ),
+      },
+      {
         path: 'restaurants',
         loadComponent: () =>
           import('@features/restaurants/restaurant-list/restaurant-list.component').then(

@@ -1,0 +1,84 @@
+<section class="mx-auto max-w-6xl px-5 py-6 sm:px-8">
+  <a routerLink="/dashboard/businesses" class="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-[#007653] no-underline"><i class="uil uil-arrow-left"></i> Businesses</a>
+
+  @if (setup; as created) {
+    <header class="mb-6"><p class="m-0 text-xs font-bold uppercase tracking-[0.14em] text-[#007653]">Business created</p><h1 class="mb-0 mt-2 text-2xl font-bold">Connect {{ created.businessName }} to OrderBridge</h1><p class="mb-0 mt-2 max-w-3xl text-sm text-[#48566d]">Copy these values now. The generated website key and catalog key are held only on this screen and are cleared when you leave it.</p></header>
+
+    @if (!created.websiteIntegrationKey) {
+      <div class="mb-5 rounded border border-[#f2d27a] bg-[#fff9e8] p-4 text-sm text-[#715a16]"><strong class="block">The business was created, but no website integration key was returned.</strong><span class="mt-1 block">The key cannot be recovered from the business details endpoint. Do not leave this screen until the API response has been checked.</span></div>
+    }
+
+    <div class="grid gap-5">
+      <article class="rounded-lg border border-[#b6dfcd] bg-[#effaf4] p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="m-0 text-base font-semibold">Business ID</h2><p class="mb-0 mt-1 text-sm text-[#48566d]">Use this as <code>ORDERBRIDGE_BUSINESS_ID</code>.</p></div><button class="rounded border border-[#007653] bg-white px-3 py-2 text-sm font-bold text-[#007653]" type="button" (click)="copyValue('Business ID', created.businessId)">{{ copiedValue === 'Business ID' ? 'Copied' : 'Copy' }}</button></div>
+        <code class="mt-4 block overflow-x-auto rounded bg-white p-3 text-xs">{{ created.businessId }}</code>
+      </article>
+
+      <article class="rounded-lg border border-[#f2d27a] bg-[#fff9e8] p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="m-0 text-base font-semibold">Generated website integration key</h2><p class="mb-0 mt-1 text-sm text-[#715a16]">Server-only. This is shown once and must not be added to the storefront Angular app.</p></div><button class="rounded border border-[#8b6b10] bg-white px-3 py-2 text-sm font-bold text-[#715a16] disabled:opacity-50" type="button" [disabled]="!created.websiteIntegrationKey" (click)="copyValue('Website key', created.websiteIntegrationKey)">{{ copiedValue === 'Website key' ? 'Copied' : 'Copy' }}</button></div>
+        <code class="mt-4 block overflow-x-auto rounded bg-white p-3 text-xs">{{ created.websiteIntegrationKey || 'Not returned by API' }}</code>
+      </article>
+
+      <article class="rounded-lg border border-[#c6d2ca] bg-white p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="m-0 text-base font-semibold">Kawama backend environment settings</h2><p class="mb-0 mt-1 text-sm text-[#48566d]">Add these server-side values to the Kawama backend environment. Keep the two keys distinct and secret.</p></div><button class="rounded bg-[#007653] px-3 py-2 text-sm font-bold text-white" type="button" (click)="copyValue('Environment', created.environmentBlock)">{{ copiedValue === 'Environment' ? 'Copied' : 'Copy all' }}</button></div>
+        <pre class="mt-4 overflow-x-auto whitespace-pre rounded bg-[#07182d] p-4 text-xs leading-6 text-white"><code>{{ created.environmentBlock }}</code></pre>
+      </article>
+
+      <div class="flex flex-wrap gap-3"><a [routerLink]="['/dashboard/businesses', created.businessId]" class="rounded bg-[#007653] px-4 py-2 text-sm font-bold text-white no-underline">View business details</a><a routerLink="/dashboard/businesses" class="rounded border border-[#c6d2ca] bg-white px-4 py-2 text-sm font-bold text-[#07182d] no-underline">Return to businesses</a></div>
+    </div>
+  } @else {
+    <header class="mb-6"><p class="m-0 text-xs font-bold uppercase tracking-[0.14em] text-[#007653]">E-commerce onboarding</p><h1 class="mb-0 mt-2 text-2xl font-bold">Add a business</h1><p class="mb-0 mt-2 max-w-3xl text-sm text-[#48566d]">Create a website-only e-commerce client with read-only catalog capabilities. Restaurant and WhatsApp configuration are intentionally excluded.</p></header>
+
+    @if (errorMessage) {<div class="mb-5 rounded border border-[#ffc9c4] bg-[#fff1f0] p-4 text-sm text-[#b00020]">{{ errorMessage }}</div>}
+
+    <form [formGroup]="businessForm" (ngSubmit)="createBusiness()" class="grid gap-5" autocomplete="off">
+      <section formGroupName="business" class="rounded-lg border border-[#c6d2ca] bg-white p-5">
+        <h2 class="m-0 text-base font-semibold">Business details</h2><p class="mb-5 mt-1 text-sm text-[#48566d]">Identity and owner contact details for the e-commerce client.</p>
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="grid gap-1 text-sm font-medium">Business name<input class="min-h-10 rounded border border-[#c6d2ca] px-3" formControlName="name" placeholder="Kawama" />@if (businessForm.controls.business.controls.name.touched && businessForm.controls.business.controls.name.invalid) {<small class="text-[#b00020]">Enter a business name up to 200 characters.</small>}</label>
+          <label class="grid gap-1 text-sm font-medium">Slug <span class="font-normal text-[#48566d]">(optional; generated when blank)</span><input class="min-h-10 rounded border border-[#c6d2ca] px-3" formControlName="slug" placeholder="kawama" />@if (businessForm.controls.business.controls.slug.touched && businessForm.controls.business.controls.slug.invalid) {<small class="text-[#b00020]">Use lowercase letters, numbers, and hyphens only.</small>}</label>
+          <label class="grid gap-1 text-sm font-medium">Owner name <span class="font-normal text-[#48566d]">(optional)</span><input class="min-h-10 rounded border border-[#c6d2ca] px-3" formControlName="ownerName" /></label>
+          <label class="grid gap-1 text-sm font-medium">Owner email <span class="font-normal text-[#48566d]">(optional)</span><input class="min-h-10 rounded border border-[#c6d2ca] px-3" type="email" formControlName="ownerEmail" />@if (businessForm.controls.business.controls.ownerEmail.touched && businessForm.controls.business.controls.ownerEmail.invalid) {<small class="text-[#b00020]">Enter a valid email address.</small>}</label>
+          <label class="grid gap-1 text-sm font-medium">Owner phone <span class="font-normal text-[#48566d]">(optional)</span><input class="min-h-10 rounded border border-[#c6d2ca] px-3" formControlName="ownerPhone" /></label>
+          <label class="grid gap-1 text-sm font-medium">Timezone<input class="min-h-10 rounded border border-[#c6d2ca] px-3" formControlName="timezone" /></label>
+          <label class="grid gap-1 text-sm font-medium md:col-span-2">Agent guidance <span class="font-normal text-[#48566d]">(optional, no secrets)</span><textarea class="min-h-24 rounded border border-[#c6d2ca] p-3" formControlName="agentInstructions" placeholder="Approved customer-facing guidance for this store"></textarea></label>
+        </div>
+      </section>
+
+      <section class="rounded-lg border border-[#c6d2ca] bg-white p-5">
+        <h2 class="m-0 text-base font-semibold">Channel and capabilities</h2><p class="mb-4 mt-1 text-sm text-[#48566d]">These validated defaults are fixed for this onboarding flow.</p>
+        <div class="grid gap-3 sm:grid-cols-3"><div class="rounded border border-[#b6dfcd] bg-[#effaf4] p-3"><small class="block text-[#48566d]">Business type</small><strong class="mt-1 block">E-commerce</strong></div><div class="rounded border border-[#b6dfcd] bg-[#effaf4] p-3"><small class="block text-[#48566d]">Enabled channel</small><strong class="mt-1 block">Website</strong></div><div class="rounded border border-[#b6dfcd] bg-[#effaf4] p-3"><small class="block text-[#48566d]">Read-only capabilities</small><strong class="mt-1 block text-sm">Catalog read · Website chat</strong></div></div>
+      </section>
+
+      <section formGroupName="website" class="rounded-lg border border-[#c6d2ca] bg-white p-5">
+        <h2 class="m-0 text-base font-semibold">Website settings</h2><p class="mb-5 mt-1 text-sm text-[#48566d]">Website chat is enabled and its integration key will be generated by OrderBridge.</p>
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="grid gap-1 text-sm font-medium">Allowed browser origins <span class="font-normal text-[#48566d]">(optional, one origin per line)</span><textarea class="min-h-24 rounded border border-[#c6d2ca] p-3" formControlName="allowedOrigins" placeholder="https://shop.example.com"></textarea>@if (businessForm.controls.website.controls.allowedOrigins.touched && businessForm.controls.website.controls.allowedOrigins.invalid) {<small class="text-[#b00020]">Enter up to 20 complete HTTP(S) origins without paths.</small>}</label>
+          <label class="grid content-start gap-1 text-sm font-medium">Requests per minute<input class="min-h-10 rounded border border-[#c6d2ca] px-3" type="number" min="1" max="600" formControlName="requestsPerMinute" />@if (businessForm.controls.website.controls.requestsPerMinute.touched && businessForm.controls.website.controls.requestsPerMinute.invalid) {<small class="text-[#b00020]">Use a whole number from 1 to 600.</small>}</label>
+        </div>
+      </section>
+
+      <section formGroupName="commerce" class="rounded-lg border border-[#c6d2ca] bg-white p-5">
+        <h2 class="m-0 text-base font-semibold">Commerce configuration</h2><p class="mb-5 mt-1 text-sm text-[#48566d]">OrderBridge uses this server-to-server connection only for approved catalog and policy reads.</p>
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="grid gap-1 text-sm font-medium md:col-span-2">Backend URL<input class="min-h-10 rounded border border-[#c6d2ca] px-3" type="url" formControlName="baseUrl" />@if (businessForm.controls.commerce.controls.baseUrl.touched && businessForm.controls.commerce.controls.baseUrl.invalid) {<small class="text-[#b00020]">Enter a valid HTTPS backend URL.</small>}</label>
+          <label class="grid gap-1 text-sm font-medium md:col-span-2">Catalog API key<input class="min-h-10 rounded border border-[#c6d2ca] px-3" type="password" formControlName="apiKey" autocomplete="new-password" placeholder="Server-only key used as ORDERBRIDGE_API_KEY" />@if (businessForm.controls.commerce.controls.apiKey.touched && businessForm.controls.commerce.controls.apiKey.invalid) {<small class="text-[#b00020]">Enter the server-only catalog API key.</small>}</label>
+          <label class="grid gap-1 text-sm font-medium">Authentication type<select class="min-h-10 rounded border border-[#c6d2ca] px-3" formControlName="authType"><option value="bearer">Bearer token</option><option value="header">Custom header</option></select></label>
+          <label class="grid gap-1 text-sm font-medium">API key header<input class="min-h-10 rounded border border-[#c6d2ca] px-3 disabled:bg-[#f5f7ff]" formControlName="apiKeyHeader" [readonly]="businessForm.controls.commerce.controls.authType.value !== 'header'" /></label>
+          <label class="grid gap-1 text-sm font-medium">Timeout (milliseconds)<input class="min-h-10 rounded border border-[#c6d2ca] px-3" type="number" min="500" max="15000" formControlName="timeoutMs" /></label>
+          <label class="grid gap-1 text-sm font-medium">Approved product hostnames <span class="font-normal text-[#48566d]">(one per line)</span><textarea class="min-h-24 rounded border border-[#c6d2ca] p-3" formControlName="canonicalProductHosts" placeholder="shop.example.com"></textarea>@if (businessForm.controls.commerce.controls.canonicalProductHosts.touched && businessForm.controls.commerce.controls.canonicalProductHosts.invalid) {<small class="text-[#b00020]">Enter 1–20 hostnames only, without scheme or path.</small>}</label>
+        </div>
+
+        <h3 class="mb-3 mt-6 text-sm font-semibold">Read-only endpoint paths</h3>
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="grid gap-1 text-sm font-medium">Product search<input class="min-h-10 rounded border border-[#c6d2ca] px-3 font-mono text-xs" formControlName="searchPath" /></label>
+          <label class="grid gap-1 text-sm font-medium">Product details<input class="min-h-10 rounded border border-[#c6d2ca] px-3 font-mono text-xs" formControlName="productPath" />@if (businessForm.controls.commerce.controls.productPath.touched && businessForm.controls.commerce.controls.productPath.invalid) {<small class="text-[#b00020]">Use a local path containing literal &#123;productId&#125;.</small>}</label>
+          <label class="grid gap-1 text-sm font-medium">Availability<input class="min-h-10 rounded border border-[#c6d2ca] px-3 font-mono text-xs" formControlName="availabilityPath" />@if (businessForm.controls.commerce.controls.availabilityPath.touched && businessForm.controls.commerce.controls.availabilityPath.invalid) {<small class="text-[#b00020]">Use a local path containing literal &#123;productId&#125;.</small>}</label>
+          <label class="grid gap-1 text-sm font-medium">Policies<input class="min-h-10 rounded border border-[#c6d2ca] px-3 font-mono text-xs" formControlName="policiesPath" /></label>
+        </div>
+      </section>
+
+      <div class="flex flex-wrap items-center justify-end gap-3"><a routerLink="/dashboard/businesses" class="rounded border border-[#c6d2ca] bg-white px-4 py-2 text-sm font-bold text-[#07182d] no-underline">Cancel</a><button class="rounded bg-[#007653] px-5 py-2 text-sm font-bold text-white disabled:cursor-wait disabled:opacity-60" type="submit" [disabled]="isSaving">{{ isSaving ? 'Creating business…' : 'Create business' }}</button></div>
+    </form>
+  }
+</section>

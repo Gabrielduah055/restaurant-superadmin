@@ -3,9 +3,9 @@ import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '@env/environment';
 
-interface ApiResponse<T> {
+export interface ApiResponse<T> {
   success: boolean;
-  message: string;
+  message?: string;
   data: T;
 }
 
@@ -23,6 +23,10 @@ export class ApiService {
 
   post<T, B = unknown>(path: string, body: B): Observable<T> {
     return this.http.post<ApiResponse<T>>(this.toUrl(path), body).pipe(map((response) => response.data));
+  }
+
+  postResponse<T extends ApiResponse<unknown>, B = unknown>(path: string, body: B): Observable<T> {
+    return this.http.post<T>(this.toUrl(path), body);
   }
 
   patch<T, B = unknown>(path: string, body: B): Observable<T> {
