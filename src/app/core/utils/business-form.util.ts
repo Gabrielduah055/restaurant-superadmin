@@ -13,6 +13,19 @@ export const httpsUrlValidator: ValidatorFn = (control: AbstractControl): Valida
   }
 };
 
+export const storefrontProductUrlTemplateValidator: ValidatorFn = (
+  control: AbstractControl,
+): ValidationErrors | null => {
+  if (!control.value) return null;
+  const value = String(control.value).trim();
+  try {
+    if (new URL(value).protocol !== 'https:') return { httpsUrl: true };
+  } catch {
+    return { httpsUrl: true };
+  }
+  return value.includes('{slug}') ? null : { slugPlaceholder: true };
+};
+
 export function localPathValidator(requireProductId = false): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const value = String(control.value ?? '');

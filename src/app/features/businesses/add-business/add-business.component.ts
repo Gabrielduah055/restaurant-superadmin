@@ -1,7 +1,7 @@
 import { Component, OnDestroy, inject } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subject, takeUntil } from 'rxjs';
 import { CreateBusinessRequest } from '@core/models/business.model';
 import { BusinessService } from '@core/services/business.service';
 import {
@@ -10,6 +10,7 @@ import {
   localPathValidator,
   originListValidator,
   parseLineSeparatedValues,
+  storefrontProductUrlTemplateValidator,
 } from '@core/utils/business-form.util';
 import { environment } from '@env/environment';
 
@@ -30,6 +31,8 @@ export class AddBusinessComponent implements OnDestroy {
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly businessService = inject(BusinessService);
   private readonly orderBridgeBaseUrl = environment.apiBaseUrl.replace(/\/api\/?$/, '');
+  private readonly destroyed$ = new Subject<void>();
+  private destroyed = false;
 
   isSaving = false;
   errorMessage = '';
@@ -49,6 +52,10 @@ export class AddBusinessComponent implements OnDestroy {
     website: this.formBuilder.group({
       allowedOrigins: ['', originListValidator],
       requestsPerMinute: [60, [Validators.required, Validators.min(1), Validators.max(600)]],
+      storefrontProductUrlTemplate: [
+        '',
+        [Validators.required, storefrontProductUrlTemplateValidator],
+      ],
     }),
     commerce: this.formBuilder.group({
       baseUrl: ['https://kawama-admin-backend.onrender.com', [Validators.required, httpsUrlValidator]],
@@ -65,6 +72,10 @@ export class AddBusinessComponent implements OnDestroy {
   });
 
   ngOnDestroy(): void {
+    this.destroyed = true;
+    this.destroyed$.next();
+    this.destroyed$.complete();
+    this.isSaving = false;
     this.businessForm.controls.commerce.controls.apiKey.setValue('');
     if (this.setup) {
       this.setup.websiteIntegrationKey = '';
@@ -72,6 +83,10 @@ export class AddBusinessComponent implements OnDestroy {
       this.setup.environmentBlock = '';
     }
     this.setup = undefined;
+  }
+
+  canDeactivate(): boolean {
+    return !this.isSaving;
   }
 
   async createBusiness(): Promise<void> {
@@ -85,6 +100,7 @@ export class AddBusinessComponent implements OnDestroy {
     this.isSaving = true;
     const value = this.businessForm.getRawValue();
     const catalogApiKey = value.commerce.apiKey.trim();
+    const storefrontProductUrlTemplate = value.website.storefrontProductUrlTemplate.trim();
     const optional = (input: string): string | undefined => input.trim() || undefined;
     const payload: CreateBusinessRequest = {
       name: value.business.name.trim(),
@@ -121,20 +137,29 @@ export class AddBusinessComponent implements OnDestroy {
     };
 
     try {
-      const result = await firstValueFrom(this.businessService.createBusiness(payload));
+      const result = await firstValueFrom(
+        this.businessService.createBusiness(payload).pipe(takeUntil(this.destroyed$)),
+      );
+      if (this.destroyed) return;
       const websiteIntegrationKey = result.websiteIntegrationKey ?? '';
       this.setup = {
         businessId: result.business._id,
         businessName: result.business.name,
         websiteIntegrationKey,
         catalogApiKey,
-        environmentBlock: this.buildEnvironmentBlock(result.business._id, websiteIntegrationKey, catalogApiKey),
+        environmentBlock: this.buildEnvironmentBlock(
+          result.business._id,
+          websiteIntegrationKey,
+          catalogApiKey,
+          storefrontProductUrlTemplate,
+        ),
       };
       this.businessForm.controls.commerce.controls.apiKey.setValue('');
     } catch (error) {
+      if (this.destroyed) return;
       this.errorMessage = error instanceof Error ? error.message : 'Unable to create the business. No setup values were stored.';
     } finally {
-      this.isSaving = false;
+      if (!this.destroyed) this.isSaving = false;
     }
   }
 
@@ -148,7 +173,12 @@ export class AddBusinessComponent implements OnDestroy {
     }
   }
 
-  private buildEnvironmentBlock(businessId: string, websiteKey: string, catalogApiKey: string): string {
+  private buildEnvironmentBlock(
+    businessId: string,
+    websiteKey: string,
+    catalogApiKey: string,
+    storefrontProductUrlTemplate: string,
+  ): string {
     return [
       'AI_CHAT_ENABLED=true',
       'AI_CHAT_ENGINE=orderbridge',
@@ -157,6 +187,7 @@ export class AddBusinessComponent implements OnDestroy {
       `ORDERBRIDGE_WEBSITE_INTEGRATION_KEY=${websiteKey}`,
       'ORDERBRIDGE_CHAT_TIMEOUT_MS=60000',
       `ORDERBRIDGE_API_KEY=${catalogApiKey}`,
+      `STOREFRONT_PRODUCT_URL_TEMPLATE=${storefrontProductUrlTemplate}`,
     ].join('\n');
   }
 }

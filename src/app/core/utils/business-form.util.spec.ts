@@ -5,6 +5,7 @@ import {
   localPathValidator,
   originListValidator,
   parseLineSeparatedValues,
+  storefrontProductUrlTemplateValidator,
 } from './business-form.util';
 
 describe('business onboarding form helpers', () => {
@@ -18,6 +19,20 @@ describe('business onboarding form helpers', () => {
   it('requires HTTPS commerce backend URLs', () => {
     expect(httpsUrlValidator(new FormControl('https://api.example.com'))).toBeNull();
     expect(httpsUrlValidator(new FormControl('http://api.example.com'))).toEqual({ httpsUrl: true });
+  });
+
+  it('requires an HTTPS storefront template containing the literal slug placeholder', () => {
+    expect(
+      storefrontProductUrlTemplateValidator(
+        new FormControl('https://shop.example.com/product/{slug}'),
+      ),
+    ).toBeNull();
+    expect(
+      storefrontProductUrlTemplateValidator(new FormControl('https://shop.example.com/product/item')),
+    ).toEqual({ slugPlaceholder: true });
+    expect(
+      storefrontProductUrlTemplateValidator(new FormControl('http://shop.example.com/product/{slug}')),
+    ).toEqual({ httpsUrl: true });
   });
 
   it('requires product placeholders on product-specific paths', () => {

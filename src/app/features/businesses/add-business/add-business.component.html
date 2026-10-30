@@ -1,5 +1,5 @@
 <section class="mx-auto max-w-6xl px-5 py-6 sm:px-8">
-  <a routerLink="/dashboard/businesses" class="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-[#007653] no-underline"><i class="uil uil-arrow-left"></i> Businesses</a>
+  <a routerLink="/dashboard/businesses" class="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-[#007653] no-underline" [class.pointer-events-none]="isSaving" [class.opacity-50]="isSaving" [attr.aria-disabled]="isSaving"><i class="uil uil-arrow-left"></i> Businesses</a>
 
   @if (setup; as created) {
     <header class="mb-6"><p class="m-0 text-xs font-bold uppercase tracking-[0.14em] text-[#007653]">Business created</p><h1 class="mb-0 mt-2 text-2xl font-bold">Connect {{ created.businessName }} to OrderBridge</h1><p class="mb-0 mt-2 max-w-3xl text-sm text-[#48566d]">Copy these values now. The generated website key and catalog key are held only on this screen and are cleared when you leave it.</p></header>
@@ -55,6 +55,7 @@
         <div class="grid gap-4 md:grid-cols-2">
           <label class="grid gap-1 text-sm font-medium">Allowed browser origins <span class="font-normal text-[#48566d]">(optional, one origin per line)</span><textarea class="min-h-24 rounded border border-[#c6d2ca] p-3" formControlName="allowedOrigins" placeholder="https://shop.example.com"></textarea>@if (businessForm.controls.website.controls.allowedOrigins.touched && businessForm.controls.website.controls.allowedOrigins.invalid) {<small class="text-[#b00020]">Enter up to 20 complete HTTP(S) origins without paths.</small>}</label>
           <label class="grid content-start gap-1 text-sm font-medium">Requests per minute<input class="min-h-10 rounded border border-[#c6d2ca] px-3" type="number" min="1" max="600" formControlName="requestsPerMinute" />@if (businessForm.controls.website.controls.requestsPerMinute.touched && businessForm.controls.website.controls.requestsPerMinute.invalid) {<small class="text-[#b00020]">Use a whole number from 1 to 600.</small>}</label>
+          <label class="grid gap-1 text-sm font-medium md:col-span-2">Storefront product URL template<input class="min-h-10 rounded border border-[#c6d2ca] px-3" type="url" formControlName="storefrontProductUrlTemplate" placeholder="https://shop.example.com/product/{slug}" />@if (businessForm.controls.website.controls.storefrontProductUrlTemplate.touched && businessForm.controls.website.controls.storefrontProductUrlTemplate.invalid) {<small class="text-[#b00020]">Enter an HTTPS URL containing the literal &#123;slug&#125; placeholder.</small>}<small class="font-normal text-[#48566d]">Used only in the copied Kawama backend environment settings; it is not sent to OrderBridge.</small></label>
         </div>
       </section>
 
@@ -78,7 +79,7 @@
         </div>
       </section>
 
-      <div class="flex flex-wrap items-center justify-end gap-3"><a routerLink="/dashboard/businesses" class="rounded border border-[#c6d2ca] bg-white px-4 py-2 text-sm font-bold text-[#07182d] no-underline">Cancel</a><button class="rounded bg-[#007653] px-5 py-2 text-sm font-bold text-white disabled:cursor-wait disabled:opacity-60" type="submit" [disabled]="isSaving">{{ isSaving ? 'Creating business…' : 'Create business' }}</button></div>
+      <div class="flex flex-wrap items-center justify-end gap-3"><a routerLink="/dashboard/businesses" class="rounded border border-[#c6d2ca] bg-white px-4 py-2 text-sm font-bold text-[#07182d] no-underline" [class.pointer-events-none]="isSaving" [class.opacity-50]="isSaving" [attr.aria-disabled]="isSaving">Cancel</a><button class="rounded bg-[#007653] px-5 py-2 text-sm font-bold text-white disabled:cursor-wait disabled:opacity-60" type="submit" [disabled]="isSaving">{{ isSaving ? 'Creating business…' : 'Create business' }}</button></div>
     </form>
   }
 </section>
