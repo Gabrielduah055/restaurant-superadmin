@@ -7,7 +7,7 @@ export const roleGuard: CanActivateFn = async (route) => {
   const authService = inject(FirebaseAuthService);
   const authSession = inject(AuthSessionService);
   const router = inject(Router);
-  const user = await authService.getCurrentUser();
+  const user = await authService.getCurrentUser();3
   const allowedRoles = route.data['roles'] as string[] | undefined;
 
   if (!user) {
