@@ -128,3 +128,7 @@ export interface CommerceConnectionTestResult {
 export interface TestCommerceConnectionRequest {
   searchTerm: string;
 }
+
+export interface RotateWebsiteIntegrationKeyResult {
+  websiteIntegrationKey: string;
+}

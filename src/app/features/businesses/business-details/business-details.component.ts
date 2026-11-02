@@ -1,5 +1,5 @@
 import { DatePipe, TitleCasePipe } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import {
   AbstractControl,
   NonNullableFormBuilder,
@@ -16,6 +16,7 @@ import {
   UpdateBusinessRequest,
 } from '@core/models/business.model';
 import { BusinessService } from '@core/services/business.service';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import {
   hostnameListValidator,
   httpsUrlValidator,
@@ -43,24 +44,30 @@ function integerValidator(control: AbstractControl): ValidationErrors | null {
 
 @Component({
   selector: 'app-business-details',
-  imports: [DatePipe, ReactiveFormsModule, RouterLink, TitleCasePipe],
+  imports: [ConfirmDialogComponent, DatePipe, ReactiveFormsModule, RouterLink, TitleCasePipe],
   templateUrl: './business-details.component.html',
 })
-export class BusinessDetailsComponent implements OnInit {
+export class BusinessDetailsComponent implements OnDestroy, OnInit {
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly businessService = inject(BusinessService);
+  private destroyed = false;
 
   business?: Business;
   isLoading = false;
   isEditing = false;
   isSaving = false;
   isCheckingConnection = false;
+  isRotatingWebsiteKey = false;
+  isWebsiteKeyConfirmationOpen = false;
   errorMessage = '';
   saveErrorMessage = '';
   successMessage = '';
   connectionCheckError = '';
   connectionCheck?: CommerceConnectionTestResult;
+  websiteKeyError = '';
+  rotatedWebsiteKey?: string;
+  copiedWebsiteKey = false;
 
   readonly statusOptions: readonly BusinessStatus[] = ['trial', 'active', 'paused', 'cancelled'];
   readonly catalogSearchTerm = this.formBuilder.control('', [
@@ -102,6 +109,14 @@ export class BusinessDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     void this.loadBusiness();
+  }
+
+  ngOnDestroy(): void {
+    this.destroyed = true;
+    this.isRotatingWebsiteKey = false;
+    this.isWebsiteKeyConfirmationOpen = false;
+    this.rotatedWebsiteKey = undefined;
+    this.copiedWebsiteKey = false;
   }
 
   startEditing(): void {
@@ -227,6 +242,59 @@ export class BusinessDetailsComponent implements OnInit {
     } finally {
       this.isCheckingConnection = false;
     }
+  }
+
+  openWebsiteKeyConfirmation(): void {
+    if (!this.business || this.isRotatingWebsiteKey) return;
+    this.websiteKeyError = '';
+    this.isWebsiteKeyConfirmationOpen = true;
+  }
+
+  closeWebsiteKeyConfirmation(): void {
+    if (this.isRotatingWebsiteKey) return;
+    this.isWebsiteKeyConfirmationOpen = false;
+  }
+
+  async regenerateWebsiteKey(): Promise<void> {
+    if (!this.business || this.isRotatingWebsiteKey) return;
+
+    this.isWebsiteKeyConfirmationOpen = false;
+    this.isRotatingWebsiteKey = true;
+    this.websiteKeyError = '';
+    this.rotatedWebsiteKey = undefined;
+    this.copiedWebsiteKey = false;
+
+    try {
+      const result = await firstValueFrom(
+        this.businessService.rotateWebsiteIntegrationKey(this.business._id),
+      );
+      if (this.destroyed) return;
+      this.rotatedWebsiteKey = result.websiteIntegrationKey;
+    } catch {
+      if (this.destroyed) return;
+      this.websiteKeyError = 'Unable to regenerate the website integration key. Please try again.';
+    } finally {
+      if (!this.destroyed) this.isRotatingWebsiteKey = false;
+    }
+  }
+
+  async copyWebsiteKey(): Promise<void> {
+    if (!this.rotatedWebsiteKey) return;
+
+    try {
+      await navigator.clipboard.writeText(this.rotatedWebsiteKey);
+      if (!this.destroyed) this.copiedWebsiteKey = true;
+    } catch {
+      if (!this.destroyed) {
+        this.websiteKeyError = 'Clipboard access was unavailable. Select the key and copy it manually.';
+      }
+    }
+  }
+
+  dismissWebsiteKey(): void {
+    this.rotatedWebsiteKey = undefined;
+    this.copiedWebsiteKey = false;
+    this.websiteKeyError = '';
   }
 
   private async loadBusiness(): Promise<void> {
