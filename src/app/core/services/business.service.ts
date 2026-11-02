@@ -2,9 +2,11 @@ import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import {
   Business,
+  CommerceConnectionTestResult,
   CreateBusinessApiResponse,
   CreateBusinessRequest,
   CreateBusinessResult,
+  TestCommerceConnectionRequest,
   UpdateBusinessRequest,
 } from '@core/models/business.model';
 import { ApiService } from './api.service';
@@ -36,5 +38,15 @@ export class BusinessService {
 
   updateBusiness(businessId: string, payload: UpdateBusinessRequest): Observable<Business> {
     return this.apiService.patch<Business, UpdateBusinessRequest>(`businesses/${businessId}`, payload);
+  }
+
+  testCommerceConnection(
+    businessId: string,
+    payload: TestCommerceConnectionRequest,
+  ): Observable<CommerceConnectionTestResult> {
+    return this.apiService.post<CommerceConnectionTestResult, TestCommerceConnectionRequest>(
+      `businesses/${businessId}/commerce/test`,
+      payload,
+    );
   }
 }

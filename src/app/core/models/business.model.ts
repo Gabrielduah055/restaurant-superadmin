@@ -110,3 +110,21 @@ export interface UpdateBusinessRequest {
     canonicalProductHosts?: string[];
   };
 }
+
+export type CommerceConnectionCheckName = 'productSearch' | 'policies';
+
+export interface CommerceConnectionCheckResult {
+  name: CommerceConnectionCheckName;
+  success: boolean;
+  details?: string;
+  error?: string;
+}
+
+export interface CommerceConnectionTestResult {
+  checkedAt: string;
+  checks: CommerceConnectionCheckResult[];
+}
+
+export interface TestCommerceConnectionRequest {
+  searchTerm: string;
+}

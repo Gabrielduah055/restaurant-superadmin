@@ -12,6 +12,7 @@ import { firstValueFrom } from 'rxjs';
 import {
   Business,
   BusinessStatus,
+  CommerceConnectionTestResult,
   UpdateBusinessRequest,
 } from '@core/models/business.model';
 import { BusinessService } from '@core/services/business.service';
@@ -54,11 +55,19 @@ export class BusinessDetailsComponent implements OnInit {
   isLoading = false;
   isEditing = false;
   isSaving = false;
+  isCheckingConnection = false;
   errorMessage = '';
   saveErrorMessage = '';
   successMessage = '';
+  connectionCheckError = '';
+  connectionCheck?: CommerceConnectionTestResult;
 
   readonly statusOptions: readonly BusinessStatus[] = ['trial', 'active', 'paused', 'cancelled'];
+  readonly catalogSearchTerm = this.formBuilder.control('', [
+    Validators.required,
+    Validators.pattern(/\S/),
+    Validators.maxLength(100),
+  ]);
 
   readonly businessForm = this.formBuilder.group({
     business: this.formBuilder.group({
@@ -177,6 +186,8 @@ export class BusinessDetailsComponent implements OnInit {
 
       this.business = refreshedBusiness;
       this.populateForm(refreshedBusiness);
+      this.connectionCheck = undefined;
+      this.connectionCheckError = '';
       this.isEditing = false;
       this.successMessage = 'Business updated successfully.';
     } catch (error) {
@@ -185,6 +196,32 @@ export class BusinessDetailsComponent implements OnInit {
         : 'Unable to update this business. Your changes are still in the form.';
     } finally {
       this.isSaving = false;
+    }
+  }
+
+  async testCatalogConnection(): Promise<void> {
+    if (this.isCheckingConnection || this.isSaving || !this.business) return;
+
+    this.connectionCheckError = '';
+    this.connectionCheck = undefined;
+    if (this.catalogSearchTerm.invalid) {
+      this.catalogSearchTerm.markAsTouched();
+      return;
+    }
+
+    this.isCheckingConnection = true;
+    try {
+      this.connectionCheck = await firstValueFrom(
+        this.businessService.testCommerceConnection(this.business._id, {
+          searchTerm: this.catalogSearchTerm.getRawValue().trim(),
+        }),
+      );
+    } catch (error) {
+      this.connectionCheckError = error instanceof Error
+        ? error.message
+        : 'Unable to test the saved commerce connection.';
+    } finally {
+      this.isCheckingConnection = false;
     }
   }
 

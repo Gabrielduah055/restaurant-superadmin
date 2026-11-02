@@ -31,6 +31,58 @@
         <div class="mb-5 rounded border border-[#b6dfcd] bg-[#effaf4] p-4 text-sm font-medium text-[#126a49]" role="status">{{ successMessage }}</div>
       }
 
+      @if (current.commerceIntegration) {
+        <section class="mb-5 rounded-lg border border-[#c6d2ca] bg-white p-5">
+          <h2 class="m-0 text-base font-semibold">Test catalog connection</h2>
+          <p class="mb-5 mt-1 text-sm text-[#48566d]">Runs bounded, read-only checks against the saved server-side product search and policies settings.</p>
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start">
+            <label class="grid flex-1 gap-1 text-sm font-medium">Product search term
+              <input
+                class="min-h-10 rounded border border-[#c6d2ca] px-3"
+                type="search"
+                maxlength="100"
+                [formControl]="catalogSearchTerm"
+                placeholder="e.g. phone"
+              />
+              @if (catalogSearchTerm.touched && catalogSearchTerm.invalid) {
+                <small class="text-[#b00020]">Enter a search term of no more than 100 characters.</small>
+              }
+            </label>
+            <button
+              class="min-h-10 rounded bg-[#007653] px-5 text-sm font-bold text-white disabled:cursor-wait disabled:opacity-60 sm:mt-6"
+              type="button"
+              [disabled]="isCheckingConnection || isSaving || catalogSearchTerm.invalid"
+              (click)="testCatalogConnection()"
+            >{{ isCheckingConnection ? 'Checking…' : 'Test connection' }}</button>
+          </div>
+
+          @if (connectionCheckError) {
+            <div class="mt-4 rounded border border-[#ffc9c4] bg-[#fff1f0] p-3 text-sm text-[#b00020]" role="alert">{{ connectionCheckError }}</div>
+          }
+
+          @if (connectionCheck; as result) {
+            <div class="mt-5 grid gap-3 md:grid-cols-2" role="status">
+              @for (check of result.checks; track check.name) {
+                <article
+                  class="rounded border p-4"
+                  [class.border-[#b6dfcd]]="check.success"
+                  [class.bg-[#effaf4]]="check.success"
+                  [class.border-[#ffc9c4]]="!check.success"
+                  [class.bg-[#fff1f0]]="!check.success"
+                >
+                  <div class="flex items-center justify-between gap-3">
+                    <h3 class="m-0 text-sm font-semibold">{{ check.name === 'productSearch' ? 'Product search' : 'Policies' }}</h3>
+                    <span class="text-xs font-bold" [class.text-[#126a49]]="check.success" [class.text-[#b00020]]="!check.success">{{ check.success ? 'Passed' : 'Failed' }}</span>
+                  </div>
+                  <p class="mb-0 mt-2 text-sm" [class.text-[#126a49]]="check.success" [class.text-[#b00020]]="!check.success">{{ check.success ? check.details : check.error }}</p>
+                  <p class="mb-0 mt-3 text-xs text-[#48566d]">Checked {{ result.checkedAt | date:'medium' }}</p>
+                </article>
+              }
+            </div>
+          }
+        </section>
+      }
+
       @if (isEditing) {
         @if (saveErrorMessage) {
           <div class="mb-5 rounded border border-[#ffc9c4] bg-[#fff1f0] p-4 text-sm text-[#b00020]" role="alert">{{ saveErrorMessage }}</div>

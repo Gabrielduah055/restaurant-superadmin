@@ -1,5 +1,10 @@
 import { firstValueFrom, of } from 'rxjs';
-import { Business, CreateBusinessApiResponse, CreateBusinessRequest } from '@core/models/business.model';
+import {
+  Business,
+  CommerceConnectionTestResult,
+  CreateBusinessApiResponse,
+  CreateBusinessRequest,
+} from '@core/models/business.model';
 import { BusinessService, mapCreateBusinessResponse } from './business.service';
 import { ApiService } from './api.service';
 
@@ -45,5 +50,28 @@ describe('BusinessService creation response mapping', () => {
     expect(apiService.postResponse).toHaveBeenCalledWith('businesses', payload);
     expect(result.websiteIntegrationKey).toBe('generated-key');
     expect(result.business).toBe(business);
+  });
+
+  it('posts the catalog search term to the saved commerce connection check', async () => {
+    const apiService = jasmine.createSpyObj<ApiService>('ApiService', ['post']);
+    const service = new BusinessService(apiService);
+    const response: CommerceConnectionTestResult = {
+      checkedAt: '2026-11-02T10:00:00.000Z',
+      checks: [
+        { name: 'productSearch', success: true, details: 'Product search returned a valid empty product list.' },
+        { name: 'policies', success: true, details: 'Policies returned a valid empty list.' },
+      ],
+    };
+    apiService.post.and.returnValue(of(response));
+
+    const result = await firstValueFrom(
+      service.testCommerceConnection('business-123', { searchTerm: 'phone' }),
+    );
+
+    expect(apiService.post).toHaveBeenCalledWith(
+      'businesses/business-123/commerce/test',
+      { searchTerm: 'phone' },
+    );
+    expect(result).toBe(response);
   });
 });
