@@ -5,6 +5,7 @@ import {
   CreateBusinessApiResponse,
   CreateBusinessRequest,
   CreateBusinessResult,
+  UpdateBusinessRequest,
 } from '@core/models/business.model';
 import { ApiService } from './api.service';
 
@@ -31,5 +32,9 @@ export class BusinessService {
     return this.apiService
       .postResponse<CreateBusinessApiResponse, CreateBusinessRequest>('businesses', payload)
       .pipe(map(mapCreateBusinessResponse));
+  }
+
+  updateBusiness(businessId: string, payload: UpdateBusinessRequest): Observable<Business> {
+    return this.apiService.patch<Business, UpdateBusinessRequest>(`businesses/${businessId}`, payload);
   }
 }

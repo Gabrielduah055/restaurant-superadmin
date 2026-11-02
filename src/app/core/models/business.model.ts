@@ -91,3 +91,22 @@ export interface CreateBusinessResult {
   business: Business;
   websiteIntegrationKey?: string;
 }
+
+export interface UpdateBusinessRequest {
+  name?: string;
+  status?: BusinessStatus;
+  ownerName?: string;
+  ownerEmail?: string;
+  ownerPhone?: string;
+  timezone?: string;
+  agentInstructions?: string;
+  websiteIntegration?: Partial<WebsiteIntegrationConfiguration>;
+  commerceIntegration?: {
+    baseUrl?: string;
+    apiKey?: string;
+    authType?: CommerceIntegrationConfiguration['authType'];
+    apiKeyHeader?: string;
+    paths?: Partial<CommerceApiPaths>;
+    canonicalProductHosts?: string[];
+  };
+}
