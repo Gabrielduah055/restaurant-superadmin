@@ -6,6 +6,7 @@ import {
   CreateBusinessApiResponse,
   CreateBusinessRequest,
   CreateBusinessResult,
+  RotateWebsiteIntegrationKeyResult,
   TestCommerceConnectionRequest,
   UpdateBusinessRequest,
 } from '@core/models/business.model';
@@ -47,6 +48,13 @@ export class BusinessService {
     return this.apiService.post<CommerceConnectionTestResult, TestCommerceConnectionRequest>(
       `businesses/${businessId}/commerce/test`,
       payload,
+    );
+  }
+
+  rotateWebsiteIntegrationKey(businessId: string): Observable<RotateWebsiteIntegrationKeyResult> {
+    return this.apiService.post<RotateWebsiteIntegrationKeyResult, Record<string, never>>(
+      `businesses/${businessId}/website/rotate-key`,
+      {},
     );
   }
 }
