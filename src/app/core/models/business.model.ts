@@ -91,3 +91,40 @@ export interface CreateBusinessResult {
   business: Business;
   websiteIntegrationKey?: string;
 }
+
+export interface UpdateBusinessRequest {
+  name?: string;
+  status?: BusinessStatus;
+  ownerName?: string;
+  ownerEmail?: string;
+  ownerPhone?: string;
+  timezone?: string;
+  agentInstructions?: string;
+  websiteIntegration?: Partial<WebsiteIntegrationConfiguration>;
+  commerceIntegration?: {
+    baseUrl?: string;
+    apiKey?: string;
+    authType?: CommerceIntegrationConfiguration['authType'];
+    apiKeyHeader?: string;
+    paths?: Partial<CommerceApiPaths>;
+    canonicalProductHosts?: string[];
+  };
+}
+
+export type CommerceConnectionCheckName = 'productSearch' | 'policies';
+
+export interface CommerceConnectionCheckResult {
+  name: CommerceConnectionCheckName;
+  success: boolean;
+  details?: string;
+  error?: string;
+}
+
+export interface CommerceConnectionTestResult {
+  checkedAt: string;
+  checks: CommerceConnectionCheckResult[];
+}
+
+export interface TestCommerceConnectionRequest {
+  searchTerm: string;
+}

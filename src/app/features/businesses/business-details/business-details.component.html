@@ -1,55 +1,280 @@
 <section class="mx-auto max-w-6xl px-5 py-6 sm:px-8">
-  <a routerLink="/dashboard/businesses" class="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-[#007653] no-underline"><i class="uil uil-arrow-left"></i> Businesses</a>
+  <a
+    routerLink="/dashboard/businesses"
+    class="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-[#007653] no-underline"
+    [class.pointer-events-none]="isSaving"
+    [class.opacity-50]="isSaving"
+    [attr.aria-disabled]="isSaving"
+  ><i class="uil uil-arrow-left"></i> Businesses</a>
+
   @if (isLoading) {
     <div class="rounded border border-[#c6d2ca] bg-white p-6 text-sm text-[#48566d]">Loading business…</div>
   } @else if (errorMessage) {
     <div class="rounded border border-[#ffc9c4] bg-[#fff1f0] p-6 text-sm text-[#b00020]">{{ errorMessage }}</div>
   } @else {
     @if (business; as current) {
-    <header class="mb-6 flex flex-wrap items-start justify-between gap-4">
-      <div><p class="m-0 text-xs font-bold uppercase tracking-[0.14em] text-[#007653]">{{ current.type }}</p><h1 class="mb-0 mt-2 text-2xl font-bold">{{ current.name }}</h1><p class="mb-0 mt-2 text-sm text-[#48566d]">{{ current.slug }} · Created {{ current.createdAt ? (current.createdAt | date:'medium') : 'date unavailable' }}</p></div>
-      <span class="rounded-full bg-[#e6f7ed] px-3 py-1 text-xs font-bold capitalize text-[#126a49]">{{ current.status }}</span>
-    </header>
+      <header class="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p class="m-0 text-xs font-bold uppercase tracking-[0.14em] text-[#007653]">{{ current.type }}</p>
+          <h1 class="mb-0 mt-2 text-2xl font-bold">{{ current.name }}</h1>
+          <p class="mb-0 mt-2 text-sm text-[#48566d]">{{ current.slug }} · Created {{ current.createdAt ? (current.createdAt | date:'medium') : 'date unavailable' }}</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="rounded-full bg-[#e6f7ed] px-3 py-1 text-xs font-bold capitalize text-[#126a49]">{{ current.status }}</span>
+          @if (!isEditing) {
+            <button class="min-h-10 rounded bg-[#007653] px-4 text-sm font-bold text-white" type="button" (click)="startEditing()">Edit</button>
+          }
+        </div>
+      </header>
 
-    <div class="grid gap-5 lg:grid-cols-2">
-      <article class="rounded-lg border border-[#c6d2ca] bg-white p-5">
-        <h2 class="m-0 text-base font-semibold">Business details</h2>
-        <dl class="mt-5 grid gap-4 text-sm sm:grid-cols-2">
-          <div><dt class="text-[#48566d]">Business ID</dt><dd class="m-0 mt-1 break-all font-mono text-xs font-semibold">{{ current._id }}</dd></div>
-          <div><dt class="text-[#48566d]">Timezone</dt><dd class="m-0 mt-1 font-semibold">{{ current.timezone }}</dd></div>
-          <div><dt class="text-[#48566d]">Owner</dt><dd class="m-0 mt-1 font-semibold">{{ current.ownerName || 'Not recorded' }}</dd></div>
-          <div><dt class="text-[#48566d]">Owner email</dt><dd class="m-0 mt-1 font-semibold">{{ current.ownerEmail || 'Not recorded' }}</dd></div>
-          <div class="sm:col-span-2"><dt class="text-[#48566d]">Agent guidance</dt><dd class="m-0 mt-1 whitespace-pre-line font-semibold">{{ current.agentInstructions || 'No additional guidance' }}</dd></div>
-        </dl>
-      </article>
-
-      <article class="rounded-lg border border-[#c6d2ca] bg-white p-5">
-        <h2 class="m-0 text-base font-semibold">Website access</h2>
-        <dl class="mt-5 grid gap-4 text-sm">
-          <div><dt class="text-[#48566d]">Channel</dt><dd class="m-0 mt-1 font-semibold">{{ current.enabledChannels.join(', ') || 'None' }}</dd></div>
-          <div><dt class="text-[#48566d]">Read-only capabilities</dt><dd class="m-0 mt-1 font-semibold">{{ current.capabilities.join(', ') || 'None' }}</dd></div>
-          <div><dt class="text-[#48566d]">Website integration</dt><dd class="m-0 mt-1 font-semibold">{{ current.websiteIntegration?.enabled ? 'Enabled' : 'Disabled' }}</dd></div>
-          <div><dt class="text-[#48566d]">Allowed origins</dt><dd class="m-0 mt-1 font-semibold">{{ current.websiteIntegration?.allowedOrigins?.join(', ') || 'Any request without an Origin header' }}</dd></div>
-          <div><dt class="text-[#48566d]">Rate limit</dt><dd class="m-0 mt-1 font-semibold">{{ current.websiteIntegration?.requestsPerMinute || 'Not configured' }} requests/minute</dd></div>
-        </dl>
-      </article>
-
-      @if (current.commerceIntegration; as commerce) {
-        <article class="rounded-lg border border-[#c6d2ca] bg-white p-5 lg:col-span-2">
-          <h2 class="m-0 text-base font-semibold">Commerce integration</h2>
-          <p class="mb-0 mt-1 text-sm text-[#48566d]">Credentials are intentionally never returned by the API.</p>
-          <dl class="mt-5 grid gap-4 text-sm md:grid-cols-2">
-            <div><dt class="text-[#48566d]">Backend URL</dt><dd class="m-0 mt-1 break-all font-semibold">{{ commerce.baseUrl }}</dd></div>
-            <div><dt class="text-[#48566d]">Authentication</dt><dd class="m-0 mt-1 font-semibold">{{ commerce.authType | titlecase }}{{ commerce.authType === 'header' ? ' · ' + commerce.apiKeyHeader : '' }}</dd></div>
-            <div><dt class="text-[#48566d]">Search</dt><dd class="m-0 mt-1 font-mono text-xs font-semibold">{{ commerce.paths.search }}</dd></div>
-            <div><dt class="text-[#48566d]">Product</dt><dd class="m-0 mt-1 font-mono text-xs font-semibold">{{ commerce.paths.product }}</dd></div>
-            <div><dt class="text-[#48566d]">Availability</dt><dd class="m-0 mt-1 font-mono text-xs font-semibold">{{ commerce.paths.availability }}</dd></div>
-            <div><dt class="text-[#48566d]">Policies</dt><dd class="m-0 mt-1 font-mono text-xs font-semibold">{{ commerce.paths.policies }}</dd></div>
-            <div class="md:col-span-2"><dt class="text-[#48566d]">Approved product hostnames</dt><dd class="m-0 mt-1 font-semibold">{{ commerce.canonicalProductHosts.join(', ') }}</dd></div>
-          </dl>
-        </article>
+      @if (successMessage) {
+        <div class="mb-5 rounded border border-[#b6dfcd] bg-[#effaf4] p-4 text-sm font-medium text-[#126a49]" role="status">{{ successMessage }}</div>
       }
-    </div>
+
+      @if (current.commerceIntegration) {
+        <section class="mb-5 rounded-lg border border-[#c6d2ca] bg-white p-5">
+          <h2 class="m-0 text-base font-semibold">Test catalog connection</h2>
+          <p class="mb-5 mt-1 text-sm text-[#48566d]">Runs bounded, read-only checks against the saved server-side product search and policies settings.</p>
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start">
+            <label class="grid flex-1 gap-1 text-sm font-medium">Product search term
+              <input
+                class="min-h-10 rounded border border-[#c6d2ca] px-3"
+                type="search"
+                maxlength="100"
+                [formControl]="catalogSearchTerm"
+                placeholder="e.g. phone"
+              />
+              @if (catalogSearchTerm.touched && catalogSearchTerm.invalid) {
+                <small class="text-[#b00020]">Enter a search term of no more than 100 characters.</small>
+              }
+            </label>
+            <button
+              class="min-h-10 rounded bg-[#007653] px-5 text-sm font-bold text-white disabled:cursor-wait disabled:opacity-60 sm:mt-6"
+              type="button"
+              [disabled]="isCheckingConnection || isSaving || catalogSearchTerm.invalid"
+              (click)="testCatalogConnection()"
+            >{{ isCheckingConnection ? 'Checking…' : 'Test connection' }}</button>
+          </div>
+
+          @if (connectionCheckError) {
+            <div class="mt-4 rounded border border-[#ffc9c4] bg-[#fff1f0] p-3 text-sm text-[#b00020]" role="alert">{{ connectionCheckError }}</div>
+          }
+
+          @if (connectionCheck; as result) {
+            <div class="mt-5 grid gap-3 md:grid-cols-2" role="status">
+              @for (check of result.checks; track check.name) {
+                <article
+                  class="rounded border p-4"
+                  [class.border-[#b6dfcd]]="check.success"
+                  [class.bg-[#effaf4]]="check.success"
+                  [class.border-[#ffc9c4]]="!check.success"
+                  [class.bg-[#fff1f0]]="!check.success"
+                >
+                  <div class="flex items-center justify-between gap-3">
+                    <h3 class="m-0 text-sm font-semibold">{{ check.name === 'productSearch' ? 'Product search' : 'Policies' }}</h3>
+                    <span class="text-xs font-bold" [class.text-[#126a49]]="check.success" [class.text-[#b00020]]="!check.success">{{ check.success ? 'Passed' : 'Failed' }}</span>
+                  </div>
+                  <p class="mb-0 mt-2 text-sm" [class.text-[#126a49]]="check.success" [class.text-[#b00020]]="!check.success">{{ check.success ? check.details : check.error }}</p>
+                  <p class="mb-0 mt-3 text-xs text-[#48566d]">Checked {{ result.checkedAt | date:'medium' }}</p>
+                </article>
+              }
+            </div>
+          }
+        </section>
+      }
+
+      @if (isEditing) {
+        @if (saveErrorMessage) {
+          <div class="mb-5 rounded border border-[#ffc9c4] bg-[#fff1f0] p-4 text-sm text-[#b00020]" role="alert">{{ saveErrorMessage }}</div>
+        }
+
+        <form [formGroup]="businessForm" (ngSubmit)="saveBusiness()" class="grid gap-5" autocomplete="off">
+          <section formGroupName="business" class="rounded-lg border border-[#c6d2ca] bg-white p-5">
+            <h2 class="m-0 text-base font-semibold">Business details</h2>
+            <p class="mb-5 mt-1 text-sm text-[#48566d]">Update account identity, contact details, status, timezone, and customer-facing guidance.</p>
+            <div class="grid gap-4 md:grid-cols-2">
+              <label class="grid gap-1 text-sm font-medium">Business name
+                <input class="min-h-10 rounded border border-[#c6d2ca] px-3" formControlName="name" />
+                @if (businessForm.controls.business.controls.name.touched && businessForm.controls.business.controls.name.invalid) {
+                  <small class="text-[#b00020]">Enter a business name up to 200 characters.</small>
+                }
+              </label>
+              <label class="grid gap-1 text-sm font-medium">Status
+                <select class="min-h-10 rounded border border-[#c6d2ca] px-3 capitalize" formControlName="status">
+                  @for (status of statusOptions; track status) {
+                    <option [value]="status">{{ status | titlecase }}</option>
+                  }
+                </select>
+              </label>
+              <label class="grid gap-1 text-sm font-medium">Owner name <span class="font-normal text-[#48566d]">(optional)</span>
+                <input class="min-h-10 rounded border border-[#c6d2ca] px-3" formControlName="ownerName" />
+              </label>
+              <label class="grid gap-1 text-sm font-medium">Owner email <span class="font-normal text-[#48566d]">(optional)</span>
+                <input class="min-h-10 rounded border border-[#c6d2ca] px-3" type="email" formControlName="ownerEmail" />
+                @if (businessForm.controls.business.controls.ownerEmail.touched && businessForm.controls.business.controls.ownerEmail.invalid) {
+                  <small class="text-[#b00020]">Enter a valid email address.</small>
+                }
+              </label>
+              <label class="grid gap-1 text-sm font-medium">Owner phone <span class="font-normal text-[#48566d]">(optional)</span>
+                <input class="min-h-10 rounded border border-[#c6d2ca] px-3" formControlName="ownerPhone" />
+                @if (businessForm.controls.business.controls.ownerPhone.touched && businessForm.controls.business.controls.ownerPhone.invalid) {
+                  <small class="text-[#b00020]">Enter at least 7 characters.</small>
+                }
+              </label>
+              <label class="grid gap-1 text-sm font-medium">Timezone
+                <input class="min-h-10 rounded border border-[#c6d2ca] px-3" formControlName="timezone" placeholder="Africa/Accra" />
+                @if (businessForm.controls.business.controls.timezone.touched && businessForm.controls.business.controls.timezone.invalid) {
+                  <small class="text-[#b00020]">Enter a valid IANA timezone such as Africa/Accra.</small>
+                }
+              </label>
+              <label class="grid gap-1 text-sm font-medium md:col-span-2">Agent guidance <span class="font-normal text-[#48566d]">(optional, no secrets)</span>
+                <textarea class="min-h-28 rounded border border-[#c6d2ca] p-3" formControlName="agentInstructions" placeholder="Approved customer-facing guidance for this store"></textarea>
+                @if (businessForm.controls.business.controls.agentInstructions.touched && businessForm.controls.business.controls.agentInstructions.invalid) {
+                  <small class="text-[#b00020]">Use no more than 4,000 characters.</small>
+                }
+              </label>
+            </div>
+            <p class="mb-0 mt-4 text-xs text-[#48566d]">The update API does not accept empty optional contact or guidance values. Leaving one blank keeps its stored value.</p>
+          </section>
+
+          <section formGroupName="website" class="rounded-lg border border-[#c6d2ca] bg-white p-5">
+            <h2 class="m-0 text-base font-semibold">Website settings</h2>
+            <p class="mb-5 mt-1 text-sm text-[#48566d]">Control website chat access, approved browser origins, and request limits.</p>
+            <div class="grid gap-4 md:grid-cols-2">
+              <label class="flex min-h-10 items-center gap-3 rounded border border-[#c6d2ca] px-3 text-sm font-medium md:col-span-2">
+                <input class="size-4 accent-[#007653]" type="checkbox" formControlName="enabled" />
+                Website integration enabled
+              </label>
+              <label class="grid gap-1 text-sm font-medium">Allowed browser origins <span class="font-normal text-[#48566d]">(optional, one per line)</span>
+                <textarea class="min-h-28 rounded border border-[#c6d2ca] p-3" formControlName="allowedOrigins" placeholder="https://shop.example.com"></textarea>
+                @if (businessForm.controls.website.controls.allowedOrigins.touched && businessForm.controls.website.controls.allowedOrigins.invalid) {
+                  <small class="text-[#b00020]">Enter up to 20 complete HTTP(S) origins without paths.</small>
+                }
+              </label>
+              <label class="grid content-start gap-1 text-sm font-medium">Requests per minute
+                <input class="min-h-10 rounded border border-[#c6d2ca] px-3" type="number" min="1" max="600" step="1" formControlName="requestsPerMinute" />
+                @if (businessForm.controls.website.controls.requestsPerMinute.touched && businessForm.controls.website.controls.requestsPerMinute.invalid) {
+                  <small class="text-[#b00020]">Use a whole number from 1 to 600.</small>
+                }
+              </label>
+            </div>
+          </section>
+
+          @if (current.commerceIntegration) {
+            <section formGroupName="commerce" class="rounded-lg border border-[#c6d2ca] bg-white p-5">
+            <h2 class="m-0 text-base font-semibold">Commerce configuration</h2>
+            <p class="mb-5 mt-1 text-sm text-[#48566d]">Update the server-to-server catalog connection. Existing credentials are never displayed.</p>
+            <div class="grid gap-4 md:grid-cols-2">
+              <label class="grid gap-1 text-sm font-medium md:col-span-2">Backend URL
+                <input class="min-h-10 rounded border border-[#c6d2ca] px-3" type="url" formControlName="baseUrl" />
+                @if (businessForm.controls.commerce.controls.baseUrl.touched && businessForm.controls.commerce.controls.baseUrl.invalid) {
+                  <small class="text-[#b00020]">Enter a valid HTTPS backend URL.</small>
+                }
+              </label>
+              <label class="grid gap-1 text-sm font-medium md:col-span-2">Catalog API key <span class="font-normal text-[#48566d]">(optional replacement)</span>
+                <input class="min-h-10 rounded border border-[#c6d2ca] px-3" type="password" formControlName="apiKey" autocomplete="new-password" placeholder="Leave blank to keep the stored key" />
+                <small class="font-normal text-[#48566d]">The current key cannot be viewed. A blank value is not sent and preserves the stored credential.</small>
+                @if (businessForm.controls.commerce.controls.apiKey.touched && businessForm.controls.commerce.controls.apiKey.invalid) {
+                  <small class="text-[#b00020]">Use no more than 1,000 characters.</small>
+                }
+              </label>
+              <label class="grid gap-1 text-sm font-medium">Authentication type
+                <select class="min-h-10 rounded border border-[#c6d2ca] px-3" formControlName="authType">
+                  <option value="bearer">Bearer token</option>
+                  <option value="header">Custom header</option>
+                </select>
+              </label>
+              <label class="grid gap-1 text-sm font-medium">API key header
+                <input class="min-h-10 rounded border border-[#c6d2ca] px-3 read-only:bg-[#f5f7ff]" formControlName="apiKeyHeader" [readonly]="businessForm.controls.commerce.controls.authType.value !== 'header'" placeholder="x-api-key" />
+                @if (businessForm.controls.commerce.controls.apiKeyHeader.touched && businessForm.controls.commerce.controls.apiKeyHeader.invalid) {
+                  <small class="text-[#b00020]">Use letters, numbers, and hyphens only.</small>
+                }
+              </label>
+              <label class="grid gap-1 text-sm font-medium md:col-span-2">Approved product hostnames <span class="font-normal text-[#48566d]">(one per line)</span>
+                <textarea class="min-h-24 rounded border border-[#c6d2ca] p-3" formControlName="canonicalProductHosts" placeholder="shop.example.com"></textarea>
+                @if (businessForm.controls.commerce.controls.canonicalProductHosts.touched && businessForm.controls.commerce.controls.canonicalProductHosts.invalid) {
+                  <small class="text-[#b00020]">Enter 1–20 hostnames only, without scheme or path.</small>
+                }
+              </label>
+            </div>
+
+            <h3 class="mb-3 mt-6 text-sm font-semibold">Read-only endpoint paths</h3>
+            <div class="grid gap-4 md:grid-cols-2">
+              <label class="grid gap-1 text-sm font-medium">Product search
+                <input class="min-h-10 rounded border border-[#c6d2ca] px-3 font-mono text-xs" formControlName="searchPath" />
+                @if (businessForm.controls.commerce.controls.searchPath.touched && businessForm.controls.commerce.controls.searchPath.invalid) {
+                  <small class="text-[#b00020]">Enter an origin-relative path beginning with /.</small>
+                }
+              </label>
+              <label class="grid gap-1 text-sm font-medium">Product details
+                <input class="min-h-10 rounded border border-[#c6d2ca] px-3 font-mono text-xs" formControlName="productPath" />
+                @if (businessForm.controls.commerce.controls.productPath.touched && businessForm.controls.commerce.controls.productPath.invalid) {
+                  <small class="text-[#b00020]">Use a local path containing literal &#123;productId&#125;.</small>
+                }
+              </label>
+              <label class="grid gap-1 text-sm font-medium">Availability
+                <input class="min-h-10 rounded border border-[#c6d2ca] px-3 font-mono text-xs" formControlName="availabilityPath" />
+                @if (businessForm.controls.commerce.controls.availabilityPath.touched && businessForm.controls.commerce.controls.availabilityPath.invalid) {
+                  <small class="text-[#b00020]">Use a local path containing literal &#123;productId&#125;.</small>
+                }
+              </label>
+              <label class="grid gap-1 text-sm font-medium">Policies
+                <input class="min-h-10 rounded border border-[#c6d2ca] px-3 font-mono text-xs" formControlName="policiesPath" />
+                @if (businessForm.controls.commerce.controls.policiesPath.touched && businessForm.controls.commerce.controls.policiesPath.invalid) {
+                  <small class="text-[#b00020]">Enter an origin-relative path beginning with /.</small>
+                }
+              </label>
+            </div>
+            </section>
+          }
+
+          <div class="flex flex-wrap items-center justify-end gap-3">
+            <button class="min-h-10 rounded border border-[#c6d2ca] bg-white px-4 text-sm font-bold text-[#07182d] disabled:opacity-60" type="button" [disabled]="isSaving" (click)="cancelEditing()">Cancel</button>
+            <button class="min-h-10 rounded bg-[#007653] px-5 text-sm font-bold text-white disabled:cursor-wait disabled:opacity-60" type="submit" [disabled]="isSaving || isCheckingConnection">{{ isSaving ? 'Saving…' : 'Save changes' }}</button>
+          </div>
+        </form>
+      } @else {
+        <div class="grid gap-5 lg:grid-cols-2">
+          <article class="rounded-lg border border-[#c6d2ca] bg-white p-5">
+            <h2 class="m-0 text-base font-semibold">Business details</h2>
+            <dl class="mt-5 grid gap-4 text-sm sm:grid-cols-2">
+              <div><dt class="text-[#48566d]">Business ID</dt><dd class="m-0 mt-1 break-all font-mono text-xs font-semibold">{{ current._id }}</dd></div>
+              <div><dt class="text-[#48566d]">Timezone</dt><dd class="m-0 mt-1 font-semibold">{{ current.timezone }}</dd></div>
+              <div><dt class="text-[#48566d]">Owner</dt><dd class="m-0 mt-1 font-semibold">{{ current.ownerName || 'Not recorded' }}</dd></div>
+              <div><dt class="text-[#48566d]">Owner email</dt><dd class="m-0 mt-1 font-semibold">{{ current.ownerEmail || 'Not recorded' }}</dd></div>
+              <div><dt class="text-[#48566d]">Owner phone</dt><dd class="m-0 mt-1 font-semibold">{{ current.ownerPhone || 'Not recorded' }}</dd></div>
+              <div class="sm:col-span-2"><dt class="text-[#48566d]">Agent guidance</dt><dd class="m-0 mt-1 whitespace-pre-line font-semibold">{{ current.agentInstructions || 'No additional guidance' }}</dd></div>
+            </dl>
+          </article>
+
+          <article class="rounded-lg border border-[#c6d2ca] bg-white p-5">
+            <h2 class="m-0 text-base font-semibold">Website access</h2>
+            <dl class="mt-5 grid gap-4 text-sm">
+              <div><dt class="text-[#48566d]">Channel</dt><dd class="m-0 mt-1 font-semibold">{{ current.enabledChannels.join(', ') || 'None' }}</dd></div>
+              <div><dt class="text-[#48566d]">Read-only capabilities</dt><dd class="m-0 mt-1 font-semibold">{{ current.capabilities.join(', ') || 'None' }}</dd></div>
+              <div><dt class="text-[#48566d]">Website integration</dt><dd class="m-0 mt-1 font-semibold">{{ current.websiteIntegration?.enabled ? 'Enabled' : 'Disabled' }}</dd></div>
+              <div><dt class="text-[#48566d]">Allowed origins</dt><dd class="m-0 mt-1 font-semibold">{{ current.websiteIntegration?.allowedOrigins?.join(', ') || 'Any request without an Origin header' }}</dd></div>
+              <div><dt class="text-[#48566d]">Rate limit</dt><dd class="m-0 mt-1 font-semibold">{{ current.websiteIntegration?.requestsPerMinute || 'Not configured' }} requests/minute</dd></div>
+            </dl>
+          </article>
+
+          @if (current.commerceIntegration; as commerce) {
+            <article class="rounded-lg border border-[#c6d2ca] bg-white p-5 lg:col-span-2">
+              <h2 class="m-0 text-base font-semibold">Commerce integration</h2>
+              <p class="mb-0 mt-1 text-sm text-[#48566d]">Credentials are intentionally never returned by the API.</p>
+              <dl class="mt-5 grid gap-4 text-sm md:grid-cols-2">
+                <div><dt class="text-[#48566d]">Backend URL</dt><dd class="m-0 mt-1 break-all font-semibold">{{ commerce.baseUrl }}</dd></div>
+                <div><dt class="text-[#48566d]">Authentication</dt><dd class="m-0 mt-1 font-semibold">{{ commerce.authType | titlecase }}{{ commerce.authType === 'header' ? ' · ' + commerce.apiKeyHeader : '' }}</dd></div>
+                <div><dt class="text-[#48566d]">Search</dt><dd class="m-0 mt-1 font-mono text-xs font-semibold">{{ commerce.paths.search }}</dd></div>
+                <div><dt class="text-[#48566d]">Product</dt><dd class="m-0 mt-1 font-mono text-xs font-semibold">{{ commerce.paths.product }}</dd></div>
+                <div><dt class="text-[#48566d]">Availability</dt><dd class="m-0 mt-1 font-mono text-xs font-semibold">{{ commerce.paths.availability }}</dd></div>
+                <div><dt class="text-[#48566d]">Policies</dt><dd class="m-0 mt-1 font-mono text-xs font-semibold">{{ commerce.paths.policies }}</dd></div>
+                <div class="md:col-span-2"><dt class="text-[#48566d]">Approved product hostnames</dt><dd class="m-0 mt-1 font-semibold">{{ commerce.canonicalProductHosts.join(', ') }}</dd></div>
+              </dl>
+            </article>
+          }
+        </div>
+      }
     }
   }
 </section>
