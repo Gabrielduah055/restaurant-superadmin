@@ -120,7 +120,7 @@ export class BusinessDetailsComponent implements OnInit {
   }
 
   async saveBusiness(): Promise<void> {
-    if (this.isSaving || !this.business) return;
+    if (this.isSaving || this.isCheckingConnection || !this.business) return;
 
     this.saveErrorMessage = '';
     this.successMessage = '';
@@ -139,6 +139,24 @@ export class BusinessDetailsComponent implements OnInit {
     const apiKey = optional(value.commerce.apiKey);
     const apiKeyHeader = optional(value.commerce.apiKeyHeader);
 
+    const commerceIntegration = this.business.commerceIntegration
+      ? {
+          baseUrl: value.commerce.baseUrl.trim().replace(/\/$/, ''),
+          authType: value.commerce.authType,
+          ...(apiKeyHeader ? { apiKeyHeader } : {}),
+          ...(apiKey ? { apiKey } : {}),
+          paths: {
+            search: value.commerce.searchPath.trim(),
+            product: value.commerce.productPath.trim(),
+            availability: value.commerce.availabilityPath.trim(),
+            policies: value.commerce.policiesPath.trim(),
+          },
+          canonicalProductHosts: parseLineSeparatedValues(
+            value.commerce.canonicalProductHosts,
+          ).map((host) => host.toLowerCase()),
+        }
+      : undefined;
+
     const payload: UpdateBusinessRequest = {
       name: value.business.name.trim(),
       status: value.business.status,
@@ -152,21 +170,7 @@ export class BusinessDetailsComponent implements OnInit {
         allowedOrigins: parseLineSeparatedValues(value.website.allowedOrigins),
         requestsPerMinute: value.website.requestsPerMinute,
       },
-      commerceIntegration: {
-        baseUrl: value.commerce.baseUrl.trim().replace(/\/$/, ''),
-        authType: value.commerce.authType,
-        ...(apiKeyHeader ? { apiKeyHeader } : {}),
-        ...(apiKey ? { apiKey } : {}),
-        paths: {
-          search: value.commerce.searchPath.trim(),
-          product: value.commerce.productPath.trim(),
-          availability: value.commerce.availabilityPath.trim(),
-          policies: value.commerce.policiesPath.trim(),
-        },
-        canonicalProductHosts: parseLineSeparatedValues(
-          value.commerce.canonicalProductHosts,
-        ).map((host) => host.toLowerCase()),
-      },
+      ...(commerceIntegration ? { commerceIntegration } : {}),
     };
 
     this.isSaving = true;
@@ -272,5 +276,11 @@ export class BusinessDetailsComponent implements OnInit {
         canonicalProductHosts: commerce?.canonicalProductHosts.join('\n') ?? '',
       },
     });
+
+    if (commerce) {
+      this.businessForm.controls.commerce.enable({ emitEvent: false });
+    } else {
+      this.businessForm.controls.commerce.disable({ emitEvent: false });
+    }
   }
 }
