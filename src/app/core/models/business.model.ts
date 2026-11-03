@@ -25,6 +25,7 @@ export interface WebsiteIntegrationConfiguration {
 
 export interface WhatsappIntegrationConfiguration {
   enabled: boolean;
+  commerceNotificationsEnabled?: boolean;
   wasenderSessionId?: string;
   whatsappNumber?: string;
   hasWasenderApiToken: boolean;
@@ -113,6 +114,7 @@ export interface UpdateBusinessRequest {
   websiteIntegration?: Partial<WebsiteIntegrationConfiguration>;
   whatsappIntegration?: {
     enabled?: boolean;
+    commerceNotificationsEnabled?: boolean;
     wasenderSessionId?: string;
     wasenderApiToken?: string;
     whatsappNumber?: string;
