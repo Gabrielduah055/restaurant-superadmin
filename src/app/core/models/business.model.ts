@@ -29,6 +29,7 @@ export interface WhatsappIntegrationConfiguration {
   wasenderSessionId?: string;
   whatsappNumber?: string;
   hasWasenderApiToken: boolean;
+  hasWebhookSecret: boolean;
   configurationComplete: boolean;
 }
 
@@ -117,6 +118,7 @@ export interface UpdateBusinessRequest {
     commerceNotificationsEnabled?: boolean;
     wasenderSessionId?: string;
     wasenderApiToken?: string;
+    webhookSecret?: string;
     whatsappNumber?: string;
   };
   commerceIntegration?: {

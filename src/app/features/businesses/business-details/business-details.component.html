@@ -216,6 +216,16 @@
                   <small class="text-[#b00020]">Use no more than 1,000 characters.</small>
                 }
               </label>
+              @if (current.type === 'ecommerce') {
+                <label class="grid gap-1 text-sm font-medium md:col-span-2">Wasender webhook secret <span class="font-normal text-[#48566d]">(optional replacement)</span>
+                  <input class="min-h-10 rounded border border-[#c6d2ca] px-3" type="password" formControlName="webhookSecret" autocomplete="new-password" placeholder="Leave blank to keep the stored webhook secret" />
+                  <small class="font-normal text-[#48566d]">Copy this session’s webhook secret from Wasender. Leave blank to keep the saved secret.</small>
+                  <small class="font-normal text-[#48566d]">{{ current.whatsappIntegration?.hasWebhookSecret ? 'Configured' : 'Not configured' }}</small>
+                  @if (businessForm.controls.whatsapp.controls.webhookSecret.touched && businessForm.controls.whatsapp.controls.webhookSecret.invalid) {
+                    <small class="text-[#b00020]">Use no more than 1,000 characters.</small>
+                  }
+                </label>
+              }
             </div>
 
             <div class="mt-6 border-t border-[#e1e6ed] pt-5">
@@ -406,6 +416,9 @@
                 <div><dt class="text-[#48566d]">Paid-order WhatsApp notifications</dt><dd class="m-0 mt-1 font-semibold">{{ current.whatsappIntegration?.commerceNotificationsEnabled ? 'Enabled' : 'Disabled' }}</dd></div>
               }
               <div><dt class="text-[#48566d]">API token</dt><dd class="m-0 mt-1 font-semibold">{{ current.whatsappIntegration?.hasWasenderApiToken ? 'Configured' : 'Not configured' }}</dd></div>
+              @if (current.type === 'ecommerce') {
+                <div><dt class="text-[#48566d]">Webhook secret</dt><dd class="m-0 mt-1 font-semibold">{{ current.whatsappIntegration?.hasWebhookSecret ? 'Configured' : 'Not configured' }}</dd></div>
+              }
               <div><dt class="text-[#48566d]">Wasender session ID</dt><dd class="m-0 mt-1 break-all font-semibold">{{ current.whatsappIntegration?.wasenderSessionId || 'Not configured' }}</dd></div>
               <div><dt class="text-[#48566d]">Sending number</dt><dd class="m-0 mt-1 font-semibold">{{ current.whatsappIntegration?.whatsappNumber || 'Not configured' }}</dd></div>
               <div class="md:col-span-2"><dt class="text-[#48566d]">Notification recipients</dt><dd class="m-0 mt-1 font-semibold">{{ notificationRecipients.join(' · ') || 'None configured' }}</dd></div>
