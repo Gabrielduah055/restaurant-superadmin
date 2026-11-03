@@ -23,6 +23,14 @@ export interface WebsiteIntegrationConfiguration {
   requestsPerMinute: number;
 }
 
+export interface WhatsappIntegrationConfiguration {
+  enabled: boolean;
+  wasenderSessionId?: string;
+  whatsappNumber?: string;
+  hasWasenderApiToken: boolean;
+  configurationComplete: boolean;
+}
+
 export interface CommerceApiPaths {
   search: string;
   product: string;
@@ -55,6 +63,7 @@ export interface Business {
   capabilities: BusinessCapability[];
   agentInstructions?: string;
   websiteIntegration?: WebsiteIntegrationConfiguration;
+  whatsappIntegration?: WhatsappIntegrationConfiguration;
   commerceIntegration?: CommerceIntegrationConfiguration;
   createdAt?: string;
   updatedAt?: string;
@@ -98,9 +107,16 @@ export interface UpdateBusinessRequest {
   ownerName?: string;
   ownerEmail?: string;
   ownerPhone?: string;
+  staff?: BusinessStaffContact[];
   timezone?: string;
   agentInstructions?: string;
   websiteIntegration?: Partial<WebsiteIntegrationConfiguration>;
+  whatsappIntegration?: {
+    enabled?: boolean;
+    wasenderSessionId?: string;
+    wasenderApiToken?: string;
+    whatsappNumber?: string;
+  };
   commerceIntegration?: {
     baseUrl?: string;
     apiKey?: string;
