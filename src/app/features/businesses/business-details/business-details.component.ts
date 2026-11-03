@@ -11,6 +11,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import {
   Business,
+  BusinessStaffContact,
   BusinessStatus,
   CommerceConnectionTestResult,
   UpdateBusinessRequest,
@@ -23,6 +24,7 @@ import {
   localPathValidator,
   originListValidator,
   parseLineSeparatedValues,
+  whatsappPhoneValidator,
 } from '@core/utils/business-form.util';
 
 function ianaTimezoneValidator(control: AbstractControl): ValidationErrors | null {
@@ -82,7 +84,7 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
       status: ['trial' as BusinessStatus, Validators.required],
       ownerName: [''],
       ownerEmail: ['', Validators.email],
-      ownerPhone: ['', Validators.minLength(7)],
+      ownerPhone: ['', whatsappPhoneValidator],
       timezone: ['', [Validators.required, ianaTimezoneValidator]],
       agentInstructions: ['', Validators.maxLength(4000)],
     }),
@@ -93,6 +95,15 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
         60,
         [Validators.required, integerValidator, Validators.min(1), Validators.max(600)],
       ],
+    }),
+    whatsapp: this.formBuilder.group({
+      enabled: [false],
+      wasenderSessionId: ['', Validators.maxLength(500)],
+      wasenderApiToken: ['', Validators.maxLength(1000)],
+      whatsappNumber: ['', whatsappPhoneValidator],
+      staff: this.formBuilder.array(
+        [] as ReturnType<BusinessDetailsComponent['createStaffContactGroup']>[],
+      ),
     }),
     commerce: this.formBuilder.group({
       baseUrl: ['', [Validators.required, httpsUrlValidator]],
@@ -117,6 +128,31 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
     this.isWebsiteKeyConfirmationOpen = false;
     this.rotatedWebsiteKey = undefined;
     this.copiedWebsiteKey = false;
+    this.businessForm.controls.whatsapp.controls.wasenderApiToken.setValue('', {
+      emitEvent: false,
+    });
+  }
+
+  get staffContacts() {
+    return this.businessForm.controls.whatsapp.controls.staff;
+  }
+
+  get notificationRecipients(): string[] {
+    if (!this.business) return [];
+    return [
+      ...(this.business.ownerPhone ? [`${this.business.ownerPhone} (owner)`] : []),
+      ...this.business.staff
+        .filter((contact) => contact.phone)
+        .map((contact) => `${contact.phone} (${contact.role})`),
+    ];
+  }
+
+  addStaffContact(contact: BusinessStaffContact = { role: 'manager' }): void {
+    this.staffContacts.push(this.createStaffContactGroup(contact));
+  }
+
+  removeStaffContact(index: number): void {
+    this.staffContacts.removeAt(index);
   }
 
   startEditing(): void {
@@ -141,7 +177,7 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
     this.successMessage = '';
     if (this.businessForm.invalid) {
       this.businessForm.markAllAsTouched();
-      this.saveErrorMessage = 'Review the highlighted business, website, and commerce fields before saving.';
+      this.saveErrorMessage = 'Review the highlighted business, WhatsApp, website, and commerce fields before saving.';
       return;
     }
 
@@ -151,8 +187,39 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
     const ownerEmail = optional(value.business.ownerEmail);
     const ownerPhone = optional(value.business.ownerPhone);
     const agentInstructions = optional(value.business.agentInstructions);
+    const wasenderSessionId = optional(value.whatsapp.wasenderSessionId);
+    const wasenderApiToken = optional(value.whatsapp.wasenderApiToken);
+    const whatsappNumber = optional(value.whatsapp.whatsappNumber);
     const apiKey = optional(value.commerce.apiKey);
     const apiKeyHeader = optional(value.commerce.apiKeyHeader);
+
+    const staff = value.whatsapp.staff.map((contact) => {
+      const name = optional(contact.name);
+      const phone = optional(contact.phone);
+      const email = optional(contact.email);
+      return {
+        role: contact.role,
+        ...(name ? { name } : {}),
+        ...(phone ? { phone } : {}),
+        ...(email ? { email } : {}),
+      };
+    });
+
+    const effectiveOwnerPhone = ownerPhone || this.business.ownerPhone;
+    const hasNotificationRecipient = Boolean(effectiveOwnerPhone) || staff.some((contact) => contact.phone);
+    const hasWasenderApiToken = Boolean(
+      wasenderApiToken || this.business.whatsappIntegration?.hasWasenderApiToken,
+    );
+    if (
+      value.whatsapp.enabled &&
+      (!wasenderSessionId || !hasWasenderApiToken || !whatsappNumber || !hasNotificationRecipient)
+    ) {
+      this.businessForm.controls.whatsapp.markAllAsTouched();
+      this.businessForm.controls.business.controls.ownerPhone.markAsTouched();
+      this.staffContacts.markAllAsTouched();
+      this.saveErrorMessage = 'To enable WhatsApp, add a session ID, saved or replacement token, valid sending number, and at least one owner or manager notification number.';
+      return;
+    }
 
     const commerceIntegration = this.business.commerceIntegration
       ? {
@@ -178,12 +245,19 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
       ...(ownerName ? { ownerName } : {}),
       ...(ownerEmail ? { ownerEmail } : {}),
       ...(ownerPhone ? { ownerPhone } : {}),
+      staff,
       timezone: value.business.timezone.trim(),
       ...(agentInstructions ? { agentInstructions } : {}),
       websiteIntegration: {
         enabled: value.website.enabled,
         allowedOrigins: parseLineSeparatedValues(value.website.allowedOrigins),
         requestsPerMinute: value.website.requestsPerMinute,
+      },
+      whatsappIntegration: {
+        enabled: value.whatsapp.enabled,
+        ...(wasenderSessionId ? { wasenderSessionId } : {}),
+        ...(wasenderApiToken ? { wasenderApiToken } : {}),
+        ...(whatsappNumber ? { whatsappNumber } : {}),
       },
       ...(commerceIntegration ? { commerceIntegration } : {}),
     };
@@ -317,6 +391,7 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
 
   private populateForm(business: Business): void {
     const commerce = business.commerceIntegration;
+    const whatsapp = business.whatsappIntegration;
     this.businessForm.reset({
       business: {
         name: business.name,
@@ -332,6 +407,13 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
         allowedOrigins: business.websiteIntegration?.allowedOrigins?.join('\n') ?? '',
         requestsPerMinute: business.websiteIntegration?.requestsPerMinute ?? 60,
       },
+      whatsapp: {
+        enabled: whatsapp?.enabled ?? false,
+        wasenderSessionId: whatsapp?.wasenderSessionId ?? '',
+        wasenderApiToken: '',
+        whatsappNumber: whatsapp?.whatsappNumber ?? '',
+        staff: [],
+      },
       commerce: {
         baseUrl: commerce?.baseUrl ?? '',
         apiKey: '',
@@ -345,10 +427,24 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
       },
     });
 
+    this.staffContacts.clear();
+    for (const contact of business.staff ?? []) {
+      this.addStaffContact(contact);
+    }
+
     if (commerce) {
       this.businessForm.controls.commerce.enable({ emitEvent: false });
     } else {
       this.businessForm.controls.commerce.disable({ emitEvent: false });
     }
+  }
+
+  private createStaffContactGroup(contact: BusinessStaffContact = { role: 'manager' }) {
+    return this.formBuilder.group({
+      name: [contact.name ?? ''],
+      phone: [contact.phone ?? '', whatsappPhoneValidator],
+      email: [contact.email ?? '', Validators.email],
+      role: [contact.role, Validators.required],
+    });
   }
 }

@@ -56,3 +56,21 @@ export function hostnameListValidator(control: AbstractControl): ValidationError
   const hostnamePattern = /^(?=.{1,253}$)(?!-)(?:[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?\.)*[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?$/i;
   return values.some((value) => !hostnamePattern.test(value)) ? { invalidHostname: true } : null;
 }
+
+export const whatsappPhoneValidator: ValidatorFn = (
+  control: AbstractControl,
+): ValidationErrors | null => {
+  const value = String(control.value ?? '').trim();
+  if (!value) return null;
+
+  const digits = value.replace(/^whatsapp:/i, '').replace(/[^\d+]/g, '');
+  const normalized = digits.startsWith('+233')
+    ? digits
+    : digits.startsWith('233')
+      ? `+${digits}`
+      : digits.startsWith('0') && digits.length === 10
+        ? `+233${digits.slice(1)}`
+        : digits;
+
+  return /^\+[1-9]\d{7,14}$/.test(normalized) ? null : { whatsappPhone: true };
+};
