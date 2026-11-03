@@ -205,7 +205,8 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
       };
     });
 
-    const hasNotificationRecipient = Boolean(ownerPhone) || staff.some((contact) => contact.phone);
+    const effectiveOwnerPhone = ownerPhone || this.business.ownerPhone;
+    const hasNotificationRecipient = Boolean(effectiveOwnerPhone) || staff.some((contact) => contact.phone);
     const hasWasenderApiToken = Boolean(
       wasenderApiToken || this.business.whatsappIntegration?.hasWasenderApiToken,
     );
