@@ -101,6 +101,7 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
       commerceNotificationsEnabled: [false],
       wasenderSessionId: ['', Validators.maxLength(500)],
       wasenderApiToken: ['', Validators.maxLength(1000)],
+      webhookSecret: ['', Validators.maxLength(1000)],
       whatsappNumber: ['', whatsappPhoneValidator],
       staff: this.formBuilder.array(
         [] as ReturnType<BusinessDetailsComponent['createStaffContactGroup']>[],
@@ -130,6 +131,9 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
     this.rotatedWebsiteKey = undefined;
     this.copiedWebsiteKey = false;
     this.businessForm.controls.whatsapp.controls.wasenderApiToken.setValue('', {
+      emitEvent: false,
+    });
+    this.businessForm.controls.whatsapp.controls.webhookSecret.setValue('', {
       emitEvent: false,
     });
   }
@@ -190,6 +194,7 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
     const agentInstructions = optional(value.business.agentInstructions);
     const wasenderSessionId = optional(value.whatsapp.wasenderSessionId);
     const wasenderApiToken = optional(value.whatsapp.wasenderApiToken);
+    const webhookSecret = optional(value.whatsapp.webhookSecret);
     const whatsappNumber = optional(value.whatsapp.whatsappNumber);
     const apiKey = optional(value.commerce.apiKey);
     const apiKeyHeader = optional(value.commerce.apiKeyHeader);
@@ -267,6 +272,7 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
           : {}),
         ...(wasenderSessionId ? { wasenderSessionId } : {}),
         ...(wasenderApiToken ? { wasenderApiToken } : {}),
+        ...(this.business.type === 'ecommerce' && webhookSecret ? { webhookSecret } : {}),
         ...(whatsappNumber ? { whatsappNumber } : {}),
       },
       ...(commerceIntegration ? { commerceIntegration } : {}),
@@ -422,6 +428,7 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
         commerceNotificationsEnabled: whatsapp?.commerceNotificationsEnabled ?? false,
         wasenderSessionId: whatsapp?.wasenderSessionId ?? '',
         wasenderApiToken: '',
+        webhookSecret: '',
         whatsappNumber: whatsapp?.whatsappNumber ?? '',
         staff: [],
       },
