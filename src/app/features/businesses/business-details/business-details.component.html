@@ -188,6 +188,15 @@
                 <input class="size-4 accent-[#007653]" type="checkbox" formControlName="enabled" />
                 WhatsApp integration enabled
               </label>
+              @if (current.type === 'ecommerce') {
+                <label class="grid gap-1 rounded border border-[#c6d2ca] px-3 py-3 text-sm md:col-span-2">
+                  <span class="flex items-center gap-3 font-medium">
+                    <input class="size-4 accent-[#007653]" type="checkbox" formControlName="commerceNotificationsEnabled" />
+                    Paid-order WhatsApp notifications
+                  </span>
+                  <small class="pl-7 font-normal text-[#48566d]">Enables customer payment confirmations, business-branded PDF receipts, and owner/manager order alerts. Customer messages require consent.</small>
+                </label>
+              }
               <label class="grid gap-1 text-sm font-medium">Wasender session ID
                 <input class="min-h-10 rounded border border-[#c6d2ca] px-3" formControlName="wasenderSessionId" autocomplete="off" />
                 @if (businessForm.controls.whatsapp.controls.wasenderSessionId.touched && businessForm.controls.whatsapp.controls.wasenderSessionId.invalid) {
@@ -393,6 +402,9 @@
             </div>
             <dl class="mt-5 grid gap-4 text-sm md:grid-cols-2">
               <div><dt class="text-[#48566d]">Status</dt><dd class="m-0 mt-1 font-semibold">{{ current.whatsappIntegration?.enabled ? 'Enabled' : 'Disabled' }}</dd></div>
+              @if (current.type === 'ecommerce') {
+                <div><dt class="text-[#48566d]">Paid-order WhatsApp notifications</dt><dd class="m-0 mt-1 font-semibold">{{ current.whatsappIntegration?.commerceNotificationsEnabled ? 'Enabled' : 'Disabled' }}</dd></div>
+              }
               <div><dt class="text-[#48566d]">API token</dt><dd class="m-0 mt-1 font-semibold">{{ current.whatsappIntegration?.hasWasenderApiToken ? 'Configured' : 'Not configured' }}</dd></div>
               <div><dt class="text-[#48566d]">Wasender session ID</dt><dd class="m-0 mt-1 break-all font-semibold">{{ current.whatsappIntegration?.wasenderSessionId || 'Not configured' }}</dd></div>
               <div><dt class="text-[#48566d]">Sending number</dt><dd class="m-0 mt-1 font-semibold">{{ current.whatsappIntegration?.whatsappNumber || 'Not configured' }}</dd></div>

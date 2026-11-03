@@ -98,6 +98,7 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
     }),
     whatsapp: this.formBuilder.group({
       enabled: [false],
+      commerceNotificationsEnabled: [false],
       wasenderSessionId: ['', Validators.maxLength(500)],
       wasenderApiToken: ['', Validators.maxLength(1000)],
       whatsappNumber: ['', whatsappPhoneValidator],
@@ -210,14 +211,20 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
     const hasWasenderApiToken = Boolean(
       wasenderApiToken || this.business.whatsappIntegration?.hasWasenderApiToken,
     );
+    const enablingCommerceNotifications =
+      this.business.type === 'ecommerce' && value.whatsapp.commerceNotificationsEnabled;
+    const requiresWhatsappConfiguration =
+      value.whatsapp.enabled || enablingCommerceNotifications;
     if (
-      value.whatsapp.enabled &&
+      requiresWhatsappConfiguration &&
       (!wasenderSessionId || !hasWasenderApiToken || !whatsappNumber || !hasNotificationRecipient)
     ) {
       this.businessForm.controls.whatsapp.markAllAsTouched();
       this.businessForm.controls.business.controls.ownerPhone.markAsTouched();
       this.staffContacts.markAllAsTouched();
-      this.saveErrorMessage = 'To enable WhatsApp, add a session ID, saved or replacement token, valid sending number, and at least one owner or manager notification number.';
+      this.saveErrorMessage = enablingCommerceNotifications
+        ? 'To enable paid-order WhatsApp notifications, add a session ID, saved or replacement token, valid sending number, and at least one owner or manager notification number.'
+        : 'To enable WhatsApp, add a session ID, saved or replacement token, valid sending number, and at least one owner or manager notification number.';
       return;
     }
 
@@ -255,6 +262,9 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
       },
       whatsappIntegration: {
         enabled: value.whatsapp.enabled,
+        ...(this.business.type === 'ecommerce'
+          ? { commerceNotificationsEnabled: value.whatsapp.commerceNotificationsEnabled }
+          : {}),
         ...(wasenderSessionId ? { wasenderSessionId } : {}),
         ...(wasenderApiToken ? { wasenderApiToken } : {}),
         ...(whatsappNumber ? { whatsappNumber } : {}),
@@ -409,6 +419,7 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
       },
       whatsapp: {
         enabled: whatsapp?.enabled ?? false,
+        commerceNotificationsEnabled: whatsapp?.commerceNotificationsEnabled ?? false,
         wasenderSessionId: whatsapp?.wasenderSessionId ?? '',
         wasenderApiToken: '',
         whatsappNumber: whatsapp?.whatsappNumber ?? '',
