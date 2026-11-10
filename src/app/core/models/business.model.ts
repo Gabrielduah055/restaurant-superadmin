@@ -38,6 +38,7 @@ export interface CommerceApiPaths {
   product: string;
   availability: string;
   policies: string;
+  overview?: string;
 }
 
 export interface CommerceIntegrationConfiguration {
@@ -126,6 +127,7 @@ export interface UpdateBusinessRequest {
     apiKey?: string;
     authType?: CommerceIntegrationConfiguration['authType'];
     apiKeyHeader?: string;
+    timeoutMs?: number;
     paths?: Partial<CommerceApiPaths>;
     canonicalProductHosts?: string[];
   };
