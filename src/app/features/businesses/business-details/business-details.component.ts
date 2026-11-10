@@ -116,6 +116,7 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
       productPath: ['', [Validators.required, localPathValidator(true)]],
       availabilityPath: ['', [Validators.required, localPathValidator(true)]],
       policiesPath: ['', [Validators.required, localPathValidator()]],
+      overviewPath: ['', localPathValidator()],
       canonicalProductHosts: ['', hostnameListValidator],
     }),
   });
@@ -198,6 +199,7 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
     const whatsappNumber = optional(value.whatsapp.whatsappNumber);
     const apiKey = optional(value.commerce.apiKey);
     const apiKeyHeader = optional(value.commerce.apiKeyHeader);
+    const overviewPath = optional(value.commerce.overviewPath);
 
     const staff = value.whatsapp.staff.map((contact) => {
       const name = optional(contact.name);
@@ -239,11 +241,13 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
           authType: value.commerce.authType,
           ...(apiKeyHeader ? { apiKeyHeader } : {}),
           ...(apiKey ? { apiKey } : {}),
+          timeoutMs: this.business.commerceIntegration.timeoutMs,
           paths: {
             search: value.commerce.searchPath.trim(),
             product: value.commerce.productPath.trim(),
             availability: value.commerce.availabilityPath.trim(),
             policies: value.commerce.policiesPath.trim(),
+            ...(overviewPath ? { overview: overviewPath } : {}),
           },
           canonicalProductHosts: parseLineSeparatedValues(
             value.commerce.canonicalProductHosts,
@@ -441,6 +445,7 @@ export class BusinessDetailsComponent implements OnDestroy, OnInit {
         productPath: commerce?.paths.product ?? '',
         availabilityPath: commerce?.paths.availability ?? '',
         policiesPath: commerce?.paths.policies ?? '',
+        overviewPath: commerce?.paths.overview ?? '',
         canonicalProductHosts: commerce?.canonicalProductHosts.join('\n') ?? '',
       },
     });

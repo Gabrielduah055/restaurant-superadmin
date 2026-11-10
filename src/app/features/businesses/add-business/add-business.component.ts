@@ -67,6 +67,7 @@ export class AddBusinessComponent implements OnDestroy {
       productPath: ['/api/integrations/orderbridge/products/{productId}', [Validators.required, localPathValidator(true)]],
       availabilityPath: ['/api/integrations/orderbridge/products/{productId}/availability', [Validators.required, localPathValidator(true)]],
       policiesPath: ['/api/integrations/orderbridge/policies', [Validators.required, localPathValidator()]],
+      overviewPath: ['/api/integrations/orderbridge/catalog/overview', localPathValidator()],
       canonicalProductHosts: ['', hostnameListValidator],
     }),
   });
@@ -102,6 +103,7 @@ export class AddBusinessComponent implements OnDestroy {
     const catalogApiKey = value.commerce.apiKey.trim();
     const storefrontProductUrlTemplate = value.website.storefrontProductUrlTemplate.trim();
     const optional = (input: string): string | undefined => input.trim() || undefined;
+    const overviewPath = optional(value.commerce.overviewPath);
     const payload: CreateBusinessRequest = {
       name: value.business.name.trim(),
       slug: optional(value.business.slug),
@@ -131,6 +133,7 @@ export class AddBusinessComponent implements OnDestroy {
           product: value.commerce.productPath.trim(),
           availability: value.commerce.availabilityPath.trim(),
           policies: value.commerce.policiesPath.trim(),
+          ...(overviewPath ? { overview: overviewPath } : {}),
         },
         canonicalProductHosts: parseLineSeparatedValues(value.commerce.canonicalProductHosts).map((host) => host.toLowerCase()),
       },

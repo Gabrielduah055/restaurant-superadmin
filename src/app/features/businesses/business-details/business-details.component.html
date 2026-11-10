@@ -359,6 +359,12 @@
                   <small class="text-[#b00020]">Enter an origin-relative path beginning with /.</small>
                 }
               </label>
+              <label class="grid gap-1 text-sm font-medium md:col-span-2">Catalog overview <span class="font-normal text-[#48566d]">(optional)</span>
+                <input class="min-h-10 rounded border border-[#c6d2ca] px-3 font-mono text-xs" formControlName="overviewPath" placeholder="/api/integrations/orderbridge/catalog/overview" />
+                @if (businessForm.controls.commerce.controls.overviewPath.touched && businessForm.controls.commerce.controls.overviewPath.invalid) {
+                  <small class="text-[#b00020]">Enter an origin-relative path beginning with /.</small>
+                }
+              </label>
             </div>
             </section>
           }
@@ -436,6 +442,7 @@
                 <div><dt class="text-[#48566d]">Product</dt><dd class="m-0 mt-1 font-mono text-xs font-semibold">{{ commerce.paths.product }}</dd></div>
                 <div><dt class="text-[#48566d]">Availability</dt><dd class="m-0 mt-1 font-mono text-xs font-semibold">{{ commerce.paths.availability }}</dd></div>
                 <div><dt class="text-[#48566d]">Policies</dt><dd class="m-0 mt-1 font-mono text-xs font-semibold">{{ commerce.paths.policies }}</dd></div>
+                <div class="md:col-span-2"><dt class="text-[#48566d]">Catalog overview</dt><dd class="m-0 mt-1 font-mono text-xs font-semibold">{{ commerce.paths.overview || 'Not configured' }}</dd></div>
                 <div class="md:col-span-2"><dt class="text-[#48566d]">Approved product hostnames</dt><dd class="m-0 mt-1 font-semibold">{{ commerce.canonicalProductHosts.join(', ') }}</dd></div>
               </dl>
             </article>
